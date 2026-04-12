@@ -1584,21 +1584,3 @@ GLOSSARY = {
         "related_sections": [],
     },
 }
-
-# ─────────────────────────────────────────────────────────────────────────────
-# LANGUAGE DETECTOR
-# ─────────────────────────────────────────────────────────────────────────────
-
-class LanguageDetector:
-    DE_WORDS = ['der', 'die', 'das', 'ist', 'und', 'fuer', 'für', 'von', 'mit', 'zu',
-                'ich', 'sie', 'abschnitt', 'feld', 'was', 'wie', 'wo', 'welche',
-                'bitte', 'koennen', 'können', 'muessen', 'müssen', 'haben', 'bedeutet']
-    EN_WORDS = ['the', 'is', 'and', 'for', 'of', 'with', 'to', 'in', 'i', 'you',
-                'what', 'how', 'where', 'which', 'please', 'can', 'does', 'section',
-                'field', 'mean', 'explain', 'show', 'tell']
-
-    def detect(self, text: str) -> str:
-        t = text.lower()
-        de = sum(1 for w in self.DE_WORDS if re.search(r'\b' + re.escape(w) + r'\b', t))
-        en = sum(1 for w in self.EN_WORDS if re.search(r'\b' + re.escape(w) + r'\b', t))
-        return 'de' if de >= en else 'en'
