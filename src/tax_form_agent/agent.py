@@ -3,7 +3,7 @@ from collections import defaultdict
 from typing import Optional, Dict, List
 
 from .llm_client import LLMClient
-from .tools import LanguageDetector, GLOSSARY
+from .tools import GLOSSARY
 from .form_knowledge import FormKnowledge, FormCursor
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -156,7 +156,12 @@ QUERY RULES
 - If user provides contextual answer ("I'm a cleaner") → keep actual answer in query
 - Do NOT extract random numbers from contextual answers
 - CRITICAL: query rules by intent:
-  navigate → normalize to closest German form term (fix typos, extract section number)
+  navigate → fix only clear spelling typos in individual words.
+             Extract section number from "section X" or "Abschnitt X".
+             Do NOT replace, shorten, or reinterpret — use what the user typed.
+             Parentheses are part of the field name — NEVER strip them.
+             WRONG: "IBAN (inländisches Geldinstitut)" → query="IBAN"
+             CORRECT: "IBAN (inländisches Geldinstitut)" → query="IBAN (inländisches Geldinstitut)"
   follow_up → copy user_input EXACTLY as-is, never infer form terms from context or history
               WRONG: "what if I don't have it?" → query="steuernummer" (inferred from context)
               CORRECT: "what if I don't have it?" → query="what if I don't have it?"
@@ -905,7 +910,7 @@ class ContextBuilder:
 # ─────────────────────────────────────────────────────────────────────────────
 
 class TaxFormAgent:
-    VERSION = "4.0.0"
+    VERSION = "1.0.0"
 
     _NEXT_KEYWORDS = {
         "next section", "continue to next section",
@@ -922,7 +927,7 @@ class TaxFormAgent:
     def __init__(self, form_knowledge: FormKnowledge, llm_client: LLMClient):
         self.fk  = form_knowledge
         self.llm = llm_client
-        self.ld  = LanguageDetector()
+        #self.ld  = LanguageDetector()
         self.ctx = ContextBuilder(form_knowledge)
         self._sessions: Dict[str, Session] = {}
 
@@ -957,6 +962,15 @@ class TaxFormAgent:
             return ""
         if user_input.startswith('{') and user_input.endswith('}'):
             user_input = re.sub(r'[{}":]', '', user_input).strip()
+
+        # Preprocess: "• German | English — desc" → "German"
+        _text = user_input.strip().lstrip('•').strip()
+        if '|' in _text:
+            _text = _text.split('|')[0].strip()
+        # Preprocess: "'GermanName' (EnglishName)" → "GermanName"
+        _text = re.sub(r"^'([^']+)'\s*\(.*\)\s*$", r'\1', _text)
+        user_input = _text
+        print("[DEBUG preprocess]", repr(user_input))
 
         # Step 1: Parse intent
         intent, query, lang, confusion, sec_hint, cur_move, user_ctx_update = self._parse_intent(user_input, s)
@@ -1115,8 +1129,8 @@ class TaxFormAgent:
         )
 
         if "error" in result:
-            lang = self.ld.detect(user_input)
-            return INTENT_EXPLAIN, user_input, lang, None, None, None, None
+            #lang = self.ld.detect(user_input)
+            return INTENT_EXPLAIN, user_input, s.lang, None, None, None, None
 
         if result.get('intent') == 'clarify':
             result['intent'] = INTENT_NAVIGATE
@@ -1127,14 +1141,13 @@ class TaxFormAgent:
         query = re.sub(r'^[\s•\-–—\'\"\„\"\"\«\»]+', '', query).strip()
         query = re.sub(r'\s*[|—]\s*.+$', '', query).strip()
         query = re.sub(r'\s*\|\s*$', '', query).strip()
-        if '→' not in query:
-            query = re.sub(r'\s*\([^)]+\)\s*$', '', query).strip()
         query = re.sub(r'[\s\'\"\„\"\"\«\»]+$', '', query).strip()
 
         intent  = result.get('intent', INTENT_EXPLAIN)
         if intent not in VALID_INTENTS:
             intent = INTENT_FOLLOWUP
-        lang    = result.get('language') or self.ld.detect(user_input)
+        #lang    = result.get('language') or self.ld.detect(user_input)
+        lang = result.get('language') or s.lang
         confusion = result.get('detected_confusion')
         sec_hint  = result.get('section_hint')
         cur_move  = result.get('cursor_move')
@@ -1504,7 +1517,7 @@ class TaxFormAgent:
     # ── Navigate and disambiguate ─────────────────────────────────────────────
 
     def _navigate_and_disambig(self, intent: str, query: str, cursor: FormCursor,
-                               lang: str, user_input: str, s: Session) -> Optional[str]:
+                            lang: str, user_input: str, s: Session) -> Optional[str]:
         """Update cursor for navigate intent; return disambiguation message if needed."""
         new_cursor, new_options = self._update_cursor(intent, query, cursor, lang)
 
@@ -1524,6 +1537,29 @@ class TaxFormAgent:
                     s.cursor = new_c
                     s.last_options = []
                     return None
+
+            # If query is a clear substring of exactly one option — navigate directly
+            query_norm = query.lower().replace(" ", "").replace("-", "")
+
+            def get_label(obj):
+                if hasattr(obj, 'field_label'):
+                    return obj.field_label
+                if hasattr(obj, 'subsection_name'):
+                    return obj.subsection_name
+                return ''
+
+            def query_in_name(r):
+                return query_norm in get_label(r['object']).lower().replace(" ", "").replace("-", "")
+
+            substring_matches = [r for r in options if query_in_name(r)]
+            if len(query_norm) >= 5 and len(substring_matches) == 1:
+                best = substring_matches[0]
+                new_c = self._make_cursor_from_result(best, cursor)
+                if new_c != s.cursor:
+                    s.push_cursor(s.cursor)
+                s.cursor = new_c
+                s.last_options = []
+                return None
 
             msg = self._build_disambig_message(options, query, cursor, lang)
             s.add_turn(user_input, msg)
@@ -1798,7 +1834,6 @@ class TaxFormAgent:
         return ' → '.join(parts)
 
     # ── Cursor update ─────────────────────────────────────────────────────────
-
     def _update_cursor(self, intent, query, cursor, lang):
         if intent == INTENT_FOLLOWUP:
             return cursor.to_dict(), []
@@ -1816,15 +1851,27 @@ class TaxFormAgent:
 
         q = query.lower().strip()
 
+        def _search_with_fallback(query_str, **kwargs):
+            results = self.fk.search(query_str, lang, **kwargs)
+            good = [r for r in results if r['score'] >= 30]
+            if not good:
+                stripped = re.sub(r'\s*\([^)]+\)\s*$', '', query_str).strip()
+                if stripped != query_str:
+                    results = self.fk.search(stripped, lang, **kwargs)
+                    good = [r for r in results if r['score'] >= 30]
+            return good
+
         if cursor.section:
-            results = self.fk.search(
-                query, lang,
+            good = _search_with_fallback(
+                query,
                 section_filter=cursor.section,
                 current_section=cursor.section,
                 current_subsection=cursor.subsection,
                 current_field_group=cursor.field_group
             )
-            good = [r for r in results if r['score'] >= 30]
+            stripped_q = re.sub(r'\s*\([^)]+\)\s*$', '', query).strip().lower()
+            if stripped_q != q and good:
+                q = stripped_q
 
             if good:
                 # Case 0: on a field — look for sibling/parent matches first
@@ -1873,7 +1920,6 @@ class TaxFormAgent:
 
                 # Case 2: in field_group — search inside it
                 if cursor.field_group and not cursor.field:
-                    # If query matches field_group name exactly — look for field with same name inside
                     if q == cursor.field_group.lower():
                         fg_obj = self.fk.get_field_group(cursor.section, cursor.subsection, cursor.field_group)
                         if fg_obj:
@@ -1885,19 +1931,26 @@ class TaxFormAgent:
                                     field_group=cursor.field_group,
                                     field=matching.field_name
                                 ).to_dict(), []
+
                     exact_in_fg = [r for r in good
                                    if r.get('group') == cursor.field_group
                                    and r['type'] == 'field'
-                                   and (r['object'].field_label.lower() == q or
-                                        r['object'].field_label.lower().startswith(q))]
+                                   and r['object'].field_label.lower() == q]
                     if len(exact_in_fg) == 1:
                         return self._make_cursor_from_result(exact_in_fg[0], cursor), []
+
+                    starts_in_fg = [r for r in good
+                                    if r.get('group') == cursor.field_group
+                                    and r['type'] == 'field'
+                                    and r['object'].field_label.lower().startswith(q)]
+                    if len(starts_in_fg) == 1:
+                        return self._make_cursor_from_result(starts_in_fg[0], cursor), []
 
                 # Case 3: at section root — exact subsection match
                 if not cursor.subsection:
                     exact_subs = [r for r in good
-                                  if r['type'] == 'subsection'
-                                  and r['object'].name.lower() == q]
+                                if r['type'] == 'subsection'
+                                and r['object'].name.lower() == q]
                     if len(exact_subs) == 1:
                         return self._make_cursor_from_result(exact_subs[0], cursor), []
 
@@ -1925,7 +1978,6 @@ class TaxFormAgent:
                         ]
                         if len(direct_children) == 1:
                             return self._make_cursor_from_result(direct_children[0], cursor), []
-                        # Multiple matches — try startswith among direct children
                         if len(direct_children) > 1 and len(q) >= 5:
                             startswith_match = [
                                 r for r in direct_children
