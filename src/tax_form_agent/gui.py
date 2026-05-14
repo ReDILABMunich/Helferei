@@ -368,6 +368,7 @@ class AgentSignals(QObject):
     # that's already been invalidated by Reset / language toggle / API change.
     reply_ready = pyqtSignal(int, str)
     chunk_arrived = pyqtSignal(int, str)
+    auth_failed = pyqtSignal(int)
 
 
 # ── Main window ───────────────────────────────────────────────────────────
@@ -391,6 +392,7 @@ class ChatWindow(QMainWindow):
         self.signals = AgentSignals()
         self.signals.reply_ready.connect(self._on_reply)
         self.signals.chunk_arrived.connect(self._on_chunk)
+        self.signals.auth_failed.connect(self._on_auth_failed)
         # When streaming is in progress, point this at the bubble being built.
         self._stream_bubble = None
         self._stream_buffer = ""
@@ -697,8 +699,61 @@ class ChatWindow(QMainWindow):
                 on_chunk=lambda c: self.signals.chunk_arrived.emit(gen, c),
             )
         except Exception as e:
-            reply = f"[Error] {e}"
+            reply = self._format_chat_error(e)
+            if "OpenAI API error 401" in str(e):
+                self.signals.auth_failed.emit(gen)
         self.signals.reply_ready.emit(gen, reply)
+
+    def _format_chat_error(self, e: Exception) -> str:
+        """Map raw OpenAI/HTTP errors to a friendly localized message so users
+        don't see a wall of JSON in the chat bubble (e.g. the 401 dump that
+        prints the masked key and the api-keys URL)."""
+        msg = str(e)
+        is_de = self.lang == "de"
+        if "OpenAI API error 401" in msg:
+            return (
+                "Der OpenAI-API-Schlüssel ist ungültig oder abgelaufen. "
+                "Bitte öffnen Sie die Einstellungen (API-Button oben rechts) "
+                "und tragen Sie einen gültigen Schlüssel ein."
+                if is_de else
+                "The OpenAI API key is invalid or has expired. Please open "
+                "Settings (API button, top right) and enter a valid key."
+            )
+        if "OpenAI API error 429" in msg:
+            return (
+                "OpenAI lehnt die Anfrage ab: Limit erreicht oder kein "
+                "Guthaben auf dem Konto. Bitte später erneut versuchen."
+                if is_de else
+                "OpenAI rejected the request: rate limit reached or no "
+                "credit on the account. Please try again later."
+            )
+        if "OpenAI API error 5" in msg:
+            return (
+                "OpenAI-Server ist gerade nicht erreichbar. "
+                "Bitte in ein paar Minuten erneut versuchen."
+                if is_de else
+                "OpenAI is currently unreachable. Please try again "
+                "in a few minutes."
+            )
+        if "timed out" in msg.lower() or "timeout" in msg.lower():
+            return (
+                "Zeitüberschreitung bei der Anfrage. Bitte Internet prüfen "
+                "und erneut versuchen."
+                if is_de else
+                "The request timed out. Please check your internet and try again."
+            )
+        return (
+            f"Fehler bei der Anfrage: {type(e).__name__}."
+            if is_de else
+            f"Request failed: {type(e).__name__}."
+        )
+
+    def _on_auth_failed(self, gen: int):
+        """Open the settings dialog after a 401 so the user can fix the key
+        without hunting for the API button."""
+        if gen != self._stream_gen:
+            return
+        QTimer.singleShot(400, lambda: self._open_settings(first=False))
 
     def _clean_for_streaming(self, text: str) -> str:
         """Apply the same transformations as _process_response so the streamed
