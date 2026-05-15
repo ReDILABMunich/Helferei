@@ -80,9 +80,6 @@ manually via the *Actions* tab on GitHub.
 
 ```
 ├── README.md
-├── .gitignore
-├── .github/workflows/
-│   └── build-windows.yml          # CI: build Bruno.exe on GitHub
 ├── run.sh                         # macOS/Linux launcher
 ├── run.bat                        # Windows launcher
 ├── setup.py                       # Python package metadata (CLI entry point)
