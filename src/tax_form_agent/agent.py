@@ -75,12 +75,13 @@ intent "navigate":
   CORRECT: "Gewerbeanmeldung where to get" → follow_up
   WRONG: "what is Steuernummer" → navigate  
   CORRECT: "what is Steuernummer" → explain_term
-- CRITICAL: Copied bullet in format "German · English — description" → ALWAYS navigate
-  Extract ONLY the German part before "|" as query
+- CRITICAL: Copied bullet in format "German · English — description" or "German | English — description" → ALWAYS navigate
+  Extract ONLY the German part before "·" / "|" as query
   Examples:
-    "Selbständiger Arbeit | Self-Employment (Freelance) — estimated profit" → navigate, query="Selbständiger Arbeit"
+    "Selbständiger Arbeit · Self-Employment (Freelance) — estimated profit" → navigate, query="Selbständiger Arbeit"
+    "Adresse im Inland · Address in Germany — residential address" → navigate, query="Adresse im Inland"
+    "• Geburtsdatum · Date of Birth — date of birth" → navigate, query="Geburtsdatum"
     "Adresse im Inland | Address in Germany — residential address" → navigate, query="Adresse im Inland"
-    "• Geburtsdatum | Date of Birth — date of birth" → navigate, query="Geburtsdatum"
 
 intent "explain_field":
 - User asks about a specific form field or what to enter in it
@@ -116,6 +117,26 @@ intent "follow_up":
     "I work from home" → follow_up
     "but my partner is..." → follow_up
     "we don't have employees" → follow_up
+- CRITICAL: ANY sentence of the form "I don't have X" / "I dont have X" / "I have no X" /
+  "ich habe kein X" / "ich habe keine X" / "haven't X" / "I haven't X" / "doesn't apply
+  to me" / "not applicable" / "this isn't relevant" → ALWAYS follow_up, NEVER navigate.
+  This rule applies even when X contains words that look like form fields or sections
+  (addresses, tax numbers, employees, advisor, spouse, children, business, register, etc.).
+  Such messages are the user DISMISSING the current section — they are answers, not
+  navigation queries.
+  query = the full original sentence, copied verbatim.
+  Examples (cursor in Section 6):
+    "dont have previous addresses and tax numbers" → follow_up,
+        query="dont have previous addresses and tax numbers"
+    "I don't have previous addresses and tax numbers" → follow_up
+    "I haven't moved and have no prior tax number" → follow_up
+    "haven't moved" → follow_up
+    "no previous Steuernummer" → follow_up
+    "this section doesn't apply to me" → follow_up
+    "none of this applies" → follow_up
+    "ich habe keine frühere Adresse" → follow_up
+    "ich bin nicht umgezogen" → follow_up
+  Always extract user_context_update for these — see USER_CONTEXT_UPDATE rules below.
 - Questions containing a German form term PLUS question words → follow_up (not navigate)
   Examples: "Gewerbeanmeldung where to get", "Familienstand how to fill", "IBAN where to find"
 - User selects or references an option from a select field → follow_up
@@ -232,6 +253,38 @@ user_context_update:
   Tax advisor: {"has_tax_advisor": "yes"} or {"has_tax_advisor": "no"}
     "I have no tax advisor" / "no accountant" / "ich habe keinen Steuerberater" → {"has_tax_advisor": "no"}
     "my accountant" / "mein Steuerberater" → {"has_tax_advisor": "yes"}
+  Recently moved (Section 6): {"recently_moved": "yes"} or {"recently_moved": "no"}
+    "I recently moved" / "moved last month" / "ich bin kürzlich umgezogen" → {"recently_moved": "yes"}
+    "I haven't moved" / "I've lived here for years" / "ich bin nicht umgezogen" /
+    "I don't have previous addresses" / "no previous address" → {"recently_moved": "no"}
+  Previous tax number (Section 6): {"had_previous_tax_number": "yes"} or {"had_previous_tax_number": "no"}
+    "I had a tax number" / "ich hatte eine Steuernummer aus früherer Selbständigkeit" → {"had_previous_tax_number": "yes"}
+    "I don't have a previous tax number" / "no prior Steuernummer" /
+    "I haven't had a tax number" → {"had_previous_tax_number": "no"}
+  Prior business (Section 12): {"had_prior_business": "yes"} or {"had_prior_business": "no"}
+    "I had a business before" / "this is my second business" / "ich hatte schon einmal ein Gewerbe" → {"had_prior_business": "yes"}
+    "this is my first business" / "I've never been self-employed" /
+    "no prior business" / "ich war noch nie selbständig" → {"had_prior_business": "no"}
+  Authorized representative (Section 5): {"has_representative": "yes"} or {"has_representative": "no"}
+    "I have a representative" / "ich habe einen Empfangsbevollmächtigten" → {"has_representative": "yes"}
+    "no representative" / "I don't have anyone authorized" /
+    "I'll handle it myself" / "kein Empfangsbevollmächtigter" → {"has_representative": "no"}
+  Multiple business locations (Section 9): {"has_multiple_locations": "yes"} or {"has_multiple_locations": "no"}
+    "I have several locations" / "branch offices" / "mehrere Standorte" → {"has_multiple_locations": "yes"}
+    "just one location" / "only my home office" / "no other locations" /
+    "single location" / "nur ein Standort" → {"has_multiple_locations": "no"}
+  Commercial register (Section 10): {"has_commercial_register": "yes"} or {"has_commercial_register": "no"}
+    "I'm registered in the Handelsregister" / "HRB-Nummer" / "eingetragener Kaufmann" →
+      {"has_commercial_register": "yes"}
+    "not registered" / "no Handelsregister entry" / "kein HR-Eintrag" /
+    "I'm not in the commercial register" → {"has_commercial_register": "no"}
+  CRITICAL: When user dismisses BOTH parts of Section 6 in one message, save BOTH keys:
+    "I dont have previous addresses and tax numbers" →
+      {"recently_moved": "no", "had_previous_tax_number": "no"}
+    "haven't moved and no prior tax number" →
+      {"recently_moved": "no", "had_previous_tax_number": "no"}
+    "Section 6 doesn't apply to me" / "none of this applies" (when cursor is in Section 6) →
+      {"recently_moved": "no", "had_previous_tax_number": "no"}
   Employees: {"employees": "yes"} or {"employees": "no"}
     "I have no employees" / "no staff" / "keine Mitarbeiter" / "solo" / "alone" → {"employees": "no"}
     "my employees" / "meine Mitarbeiter" / "my team" → {"employees": "yes"}
@@ -305,6 +358,13 @@ Detect from context: "Answer in English." or "Answer in German."
 
 ENGLISH rules:
 → Every bullet: • German Name · English Name — short description
+→ The separator between German and English MUST be " · " (middle dot, U+00B7).
+  NEVER use parentheses around English name: WRONG: • Adresse (Address (Germany)) — desc.
+  NEVER use " | " pipe: WRONG: • Adresse | Address (Germany) — desc.
+  NEVER use " - " dash to introduce English name.
+  If [FORM CONTEXT] shows "German | English" with a pipe, render it as
+  "German · English" with a middle dot in your output — do NOT keep the pipe
+  and do NOT replace it with parentheses.
 → Use translations from context (field_label_en, name_en, group_name_en)
 → If no translation available: use German name only, do not invent
 → For fields with very long German names (full legal sentences), ALWAYS include both:
@@ -395,6 +455,23 @@ FIELD:
             NEVER use bullet lists or headers — use short paragraphs only.
   Part 4 — 🧭 To navigate the form, type a section number or the GERMAN name of a section, subsection, or field — e.g. '7', 'Kleinunternehmer-Regelung', or 'Geburtsdatum'.
 
+FIELD WITH OPTIONS (when [FORM CONTEXT] contains an "Options" block):
+  Part 1 — 'GermanName' · EnglishName — is the field where you select... (1 sentence)
+  Part 2 — One short intro line: "You need to choose one of the following options:"
+  Part 3 — Bullet list of EVERY option, one bullet per option, IN THE ORDER GIVEN.
+            Each bullet:
+              • <DE option verbatim> · <EN option verbatim> — 1-sentence description.
+            ⚠️ CRITICAL — copy the DE and EN option strings BYTE-FOR-BYTE from the
+            "Options" block in [FORM CONTEXT]. Never drop parentheses, never strip
+            "(nur bei Land- und Forstwirtschaft)", never strip "(z. B. § 5a EStG)",
+            never strip "(EÜR / Cash Basis Accounting)". If the option string in
+            context contains parentheses or a legal reference, your bullet MUST
+            contain them too.
+            The 1-sentence description comes from the explanation prose — but the
+            option labels themselves come ONLY from the "Options" block.
+  Part 4 — One closing sentence about why the choice matters / common mistake (optional).
+  Part 5 — 🧭 To navigate the form, type a section number or the GERMAN name of a section, subsection, or field — e.g. '7', 'Kleinunternehmer-Regelung', or 'Geburtsdatum'.
+
 LARGE SECTION (10+ items):
   Split into key topics to fill + "Not relevant for most users"
   Keep response under 900 tokens
@@ -437,6 +514,23 @@ FELD:
             NIEMALS Aufzählungen oder Überschriften — nur kurze Absätze.
   Teil 4 — 🧭 Zur Navigation geben Sie eine Abschnittsnummer oder den DEUTSCHEN Namen eines Abschnitts, Unterabschnitts oder Feldes ein – z.B. '7', 'Kleinunternehmer-Regelung' oder 'Geburtsdatum'.
 
+FELD MIT OPTIONEN (wenn [FORM CONTEXT] einen "Options"-Block enthält):
+  Teil 1 — 'DeutscherName' ist das Feld, in dem Sie eine der folgenden Optionen auswählen... (1 Satz)
+  Teil 2 — Eine kurze Einleitung: "Sie müssen eine der folgenden Optionen wählen:"
+  Teil 3 — Bullet-Liste JEDER Option, ein Bullet pro Option, IN DER GEGEBENEN REIHENFOLGE.
+            Jeder Bullet:
+              • <DE-Option wortwörtlich> — 1-Satz-Beschreibung.
+            ⚠️ KRITISCH — kopieren Sie die DE-Option Zeichen für Zeichen aus dem
+            "Options"-Block in [FORM CONTEXT]. NIEMALS Klammern entfernen, NIEMALS
+            "(nur bei Land- und Forstwirtschaft)" oder "(z. B. § 5a EStG)" abschneiden,
+            NIEMALS aus der Erklärungs-Prosa paraphrasieren. Wenn die Option in
+            Context Klammern oder Gesetzesverweise enthält, MUSS Ihr Bullet sie
+            ebenfalls enthalten.
+            Die 1-Satz-Beschreibung kommt aus der Erklärung — die Option-Labels
+            selbst kommen NUR aus dem "Options"-Block.
+  Teil 4 — Ein Schlusssatz, warum die Wahl wichtig ist / häufiger Fehler (optional).
+  Teil 5 — 🧭 Zur Navigation geben Sie eine Abschnittsnummer oder den DEUTSCHEN Namen eines Abschnitts, Unterabschnitts oder Feldes ein – z.B. '7', 'Kleinunternehmer-Regelung' oder 'Geburtsdatum'.
+
 GROSSER ABSCHNITT (10+ Einträge):
   Aufteilen in wichtige Themen + "Für die meisten nicht relevant"
   Antwort unter 900 Tokens halten
@@ -466,8 +560,8 @@ for payment transactions with the tax office. The IBAN is used both for receivin
 refunds and for automatic debits of tax payments.
 
 In this section, you will provide information about:
-• IBAN (inländisches Geldinstitut) | IBAN (Domestic German Bank) — your German IBAN for tax refunds and direct debit
-• IBAN (ausländisches Geldinstitut) | IBAN (Foreign Bank Outside Germany) — only fill if you have no German bank account
+• IBAN (inländisches Geldinstitut) · IBAN (Domestic German Bank) — your German IBAN for tax refunds and direct debit
+• IBAN (ausländisches Geldinstitut) · IBAN (Foreign Bank Outside Germany) — only fill if you have no German bank account
 
 🧭 To navigate the form, type a section number or the GERMAN name of a section, subsection, or field — e.g. '7', 'Kleinunternehmer-Regelung', or 'Geburtsdatum'.
 
@@ -479,18 +573,18 @@ only if you are officially married or in a registered partnership. If not marrie
 leave the entire section blank.
 
 In this section, you will provide information about:
-• Anrede | Salutation — salutation of your spouse
-• Titel | Title — academic title, if any
-• Name | Last Name — last name of your spouse
-• Gegebenenfalls Geburtsname | Birth Name (if different) — birth name if different from last name
-• Vorname | First Name — first name of your spouse
-• Namensvorsatz | Name Prefix — e.g. 'von' (optional)
-• Namenszusatz | Name Suffix — e.g. 'jr.' (optional)
-• Ausgeübter Beruf | Occupation — occupation of your spouse
-• Geburtsdatum | Date of Birth — date of birth of your spouse
-• Religion | Religious Affiliation — religious affiliation for church tax purposes
-• Identifikationsnummer | Tax Identification Number (Steuer-ID) — tax ID of your spouse
-• Adresse - nur anzugeben, falls von Adresse der steuerpflichtigen Person abweichend | Address - only if different from taxpayer's address — only fill if your spouse lives at a different address than you
+• Anrede · Salutation — salutation of your spouse
+• Titel · Title — academic title, if any
+• Name · Last Name — last name of your spouse
+• Gegebenenfalls Geburtsname · Birth Name (if different) — birth name if different from last name
+• Vorname · First Name — first name of your spouse
+• Namensvorsatz · Name Prefix — e.g. 'von' (optional)
+• Namenszusatz · Name Suffix — e.g. 'jr.' (optional)
+• Ausgeübter Beruf · Occupation — occupation of your spouse
+• Geburtsdatum · Date of Birth — date of birth of your spouse
+• Religion · Religious Affiliation — religious affiliation for church tax purposes
+• Identifikationsnummer · Tax Identification Number (Steuer-ID) — tax ID of your spouse
+• Adresse - nur anzugeben, falls von Adresse der steuerpflichtigen Person abweichend · Address - only if different from taxpayer's address — only fill if your spouse lives at a different address than you
 
 🧭 To navigate the form, type a section number or the GERMAN name of a section, subsection, or field — e.g. '7', 'Kleinunternehmer-Regelung', or 'Geburtsdatum'.
 
@@ -501,9 +595,9 @@ must match your registration certificate (Meldebescheinigung). Do not enter your
 business address here.
 
 It includes the following:
-• Adresse im Inland | Address in Germany — fill this if you live in Germany (most users)
-• Adresse im Ausland | Address Abroad — only fill if you live outside Germany
-• Postfachadresse | P.O. Box Address — only for companies, leave blank for most users
+• Adresse im Inland · Address in Germany — fill this if you live in Germany (most users)
+• Adresse im Ausland · Address Abroad — only fill if you live outside Germany
+• Postfachadresse · P.O. Box Address — only for companies, leave blank for most users
 
 🧭 To navigate the form, type a section number or the GERMAN name of a section, subsection, or field — e.g. '7', 'Kleinunternehmer-Regelung', or 'Geburtsdatum'.
 
@@ -514,14 +608,14 @@ details of your tax advisor if they are an individual person. For most Helferei
 users, leave this subsection completely blank.
 
 It includes the following:
-• Anrede | Salutation — salutation of your tax advisor
-• Titel | Title — academic title, if any
-• Name | Last Name — last name of your tax advisor
-• Vorname | First Name — first name of your tax advisor
-• Namensvorsatz | Name Prefix — e.g. 'von' (optional)
-• Namenszusatz | Name Suffix — e.g. 'jr.' (optional)
-• Adresse | Address — address of your tax advisor
-• Telefon | Phone Number — phone number of your tax advisor
+• Anrede · Salutation — salutation of your tax advisor
+• Titel · Title — academic title, if any
+• Name · Last Name — last name of your tax advisor
+• Vorname · First Name — first name of your tax advisor
+• Namensvorsatz · Name Prefix — e.g. 'von' (optional)
+• Namenszusatz · Name Suffix — e.g. 'jr.' (optional)
+• Adresse · Address — address of your tax advisor
+• Telefon · Phone Number — phone number of your tax advisor
 
 🧭 To navigate the form, type a section number or the GERMAN name of a section, subsection, or field — e.g. '7', 'Kleinunternehmer-Regelung', or 'Geburtsdatum'.
 
@@ -532,12 +626,12 @@ Germany. All details must match your registration certificate (Meldebescheinigun
 exactly.
 
 It includes the following:
-• Straße | Street — street name without house number, exactly as on the registration certificate
-• Hausnummer | House Number — house number with suffix if applicable, e.g. '42a'
-• Hausnummerzusatz | House Number Suffix — suffix only if entered separately on your certificate
-• Adressergänzung | Address Supplement — additional details if needed, e.g. '2nd floor'
-• Postleitzahl | Postal Code — five-digit German postal code
-• Wohnort | City of Residence — city or municipality, exactly as on the registration certificate
+• Straße · Street — street name without house number, exactly as on the registration certificate
+• Hausnummer · House Number — house number with suffix if applicable, e.g. '42a'
+• Hausnummerzusatz · House Number Suffix — suffix only if entered separately on your certificate
+• Adressergänzung · Address Supplement — additional details if needed, e.g. '2nd floor'
+• Postleitzahl · Postal Code — five-digit German postal code
+• Wohnort · City of Residence — city or municipality, exactly as on the registration certificate
 
 🧭 To navigate the form, type a section number or the GERMAN name of a section, subsection, or field — e.g. '7', 'Kleinunternehmer-Regelung', or 'Geburtsdatum'.
 
@@ -547,6 +641,22 @@ It includes the following:
 .xml files are accepted, with a maximum size of 10 MB per file. Upload each file
 individually in its own row — ZIP archives are rejected, as are other formats such
 as .doc, .jpg, or .png. The file is automatically scanned for malware upon upload.
+
+🧭 To navigate the form, type a section number or the GERMAN name of a section, subsection, or field — e.g. '7', 'Kleinunternehmer-Regelung', or 'Geburtsdatum'.
+
+─── FIELD WITH OPTIONS (Section 15 → Gewinnermittlungsart) ─────────────────────
+
+'Gewinnermittlungsart' · Profit Determination Method — is the field where you
+select the method you use to determine and report your profit to the tax office.
+
+You need to choose one of the following options:
+
+• Einnahmenüberschussrechnung · Simplified Profit Calculation (EÜR / Cash Basis Accounting) — simplest method, no mandatory bookkeeping; profit = income minus expenses; available when revenue is below €600,000 and profit below €60,000 and no commercial register entry.
+• Betriebsvermögensvergleich · Asset Comparison Method (Balance Sheet / Double-Entry Bookkeeping) — requires double-entry bookkeeping with balance sheet and profit and loss statement; mandatory from €600,000 revenue or €60,000 profit or with a commercial register entry.
+• Gewinnermittlung nach Durchschnittssätzen (nur bei Land- und Forstwirtschaft) · Average Rate Method (only for agriculture and forestry) — exclusively for agriculture and forestry.
+• Sonstige (z. B. § 5a EStG) · Other (e.g., § 5a EStG for shipping tonnage tax) — only for very special cases such as tonnage taxation under § 5a EStG.
+
+A common mistake is choosing Betriebsvermögensvergleich when Einnahmenüberschussrechnung is permitted and sufficient.
 
 🧭 To navigate the form, type a section number or the GERMAN name of a section, subsection, or field — e.g. '7', 'Kleinunternehmer-Regelung', or 'Geburtsdatum'.
 
@@ -656,11 +766,46 @@ wie .doc, .jpg oder .png. Die Datei wird beim Hochladen automatisch auf Schadsof
 geprüft.
 
 🧭 Zur Navigation geben Sie eine Abschnittsnummer oder den DEUTSCHEN Namen eines Abschnitts, Unterabschnitts oder Feldes ein – z.B. '7', 'Kleinunternehmer-Regelung' oder 'Geburtsdatum'.
+
+─── FELD MIT OPTIONEN (Abschnitt 15 → Gewinnermittlungsart) ────────────────────
+
+'Gewinnermittlungsart' ist das Feld, in dem Sie die Methode auswählen, mit der
+Sie Ihren Gewinn ermitteln und dem Finanzamt gegenüber nachweisen.
+
+Sie müssen eine der folgenden Optionen wählen:
+
+• Einnahmenüberschussrechnung — einfachste Methode, kein Buchführungszwang, keine Bilanz; Gewinn = Einnahmen minus Ausgaben; zulässig wenn Umsatz unter 600.000 € und Gewinn unter 60.000 € und kein Handelsregistereintrag.
+• Betriebsvermögensvergleich — doppelte Buchführung mit Bilanz und GuV erforderlich; verpflichtend ab 600.000 € Umsatz oder 60.000 € Gewinn oder Handelsregistereintrag.
+• Gewinnermittlung nach Durchschnittssätzen (nur bei Land- und Forstwirtschaft) — ausschließlich für Land- und Forstwirtschaft.
+• Sonstige (z. B. § 5a EStG) — nur für sehr spezielle Fälle wie die Tonnagebesteuerung nach § 5a EStG.
+
+Ein häufiger Fehler ist, den Betriebsvermögensvergleich zu wählen obwohl die Einnahmenüberschussrechnung zulässig und ausreichend wäre.
+
+🧭 Zur Navigation geben Sie eine Abschnittsnummer oder den DEUTSCHEN Namen eines Abschnitts, Unterabschnitts oder Feldes ein – z.B. '7', 'Kleinunternehmer-Regelung' oder 'Geburtsdatum'.
 """
 
 FOLLOWUP_SYSTEM = """You are a helpful assistant for a German tax form (Fragebogen zur steuerlichen Erfassung für Einzelunternehmen).
 The user is continuing a conversation. Reply naturally in 2-3 sentences based on the conversation history and current form position.
 Be specific and actionable — if you know what the user should select or enter, tell them directly.
+
+⚠️ CRITICAL — VALUES TO ENTER ARE ALWAYS IN GERMAN.
+The form is a German government form, so ANY value the user types into a field
+must be in German — even when the conversation is in English. If you suggest a
+value, you MUST give the German form, with correct German capitalization
+(German nouns are capitalized) and German spelling.
+Examples (English user input → German value to enter):
+  "I'm a student" → enter "Student" (or "Studentin" if female) — NOT "student"
+  "I'm a teacher" → enter "Lehrer" / "Lehrerin" — NOT "teacher"
+  "I'm a cleaning lady" → for Ausgeübter Beruf: "Reinigungskraft" or "Gebäudereinigerin"
+                          for Art der Tätigkeit: "Reinigung von Privathaushalten und Büros"
+  "I'm a photographer" → "Fotograf" / "Fotografin" — NOT "photographer"
+  "I'm an IT consultant" → "IT-Berater" / "IT-Beraterin"
+  "I'm a freelance designer" → "Grafikdesigner" / "Grafikdesignerin"
+When the English word and German word coincide (e.g. "Manager"), still capitalize
+it (German rule). When the user gives a profession in English you don't know
+the standard German translation for, ask the user to confirm the German term
+rather than guessing.
+Format the suggestion explicitly: enter (in German): "Student" — quote the value.
 Do NOT list form fields or section contents. Do NOT repeat what you already said.
 Do NOT start your response with '📍' or any position/breadcrumb line — that is added automatically.
 Answer ONLY based on the conversation history and what the form contains. Do NOT invent information, give general tax advice, or answer questions about real-world processes outside the form. If the user asks something outside the form scope, say in one sentence that this is beyond the form and suggest they consult the relevant authority or a tax advisor.
@@ -765,7 +910,19 @@ class ContextBuilder:
         exp = (f.explanation_en if lang == 'en' and f.explanation_en else f.explanation or "")
         if exp: lines.append(f"Explanation: {exp}")
         if f.options:
-            lines.append("Options: " + ", ".join(f.options))
+            opts_de = f.options
+            opts_en = f.options_en if (lang == 'en' and f.options_en
+                                       and len(f.options_en) == len(opts_de)) else None
+            lines.append("Options (copy these strings VERBATIM into your bullet list — "
+                         "never shorten, never strip parentheses or legal references, "
+                         "never paraphrase from the explanation):")
+            if opts_en:
+                for de, en in zip(opts_de, opts_en):
+                    lines.append(f"  • DE: {de}")
+                    lines.append(f"    EN: {en}")
+            else:
+                for de in opts_de:
+                    lines.append(f"  • {de}")
         if f.branching:
             lines.append("Branching:")
             for opt, eff in f.branching.items():
@@ -798,7 +955,7 @@ class ContextBuilder:
                 exp_short = exp_short.rstrip('.')
             prefix = " " * indent
             if lang == 'en' and fg_name != fg.group_name:
-                line = f"{prefix}{fg.group_name} | {fg_name}"
+                line = f"{prefix}{fg.group_name} · {fg_name}"
             else:
                 line = f"{prefix}{fg.group_name}"
             if exp_short:
@@ -817,7 +974,7 @@ class ContextBuilder:
                     exp_short = exp_short[0].lower() + exp_short[1:]
                 exp_short = exp_short.rstrip('.')
             if lang == 'en' and f.field_label_en:
-                line = f"{f.field_label} | {f.field_label_en}"
+                line = f"{f.field_label} · {f.field_label_en}"
             else:
                 line = f.field_label
             if exp_short:
@@ -871,7 +1028,7 @@ class ContextBuilder:
                     exp_short = exp_short[0].lower() + exp_short[1:]
                 exp_short = exp_short.rstrip('.')
             if lang == 'en' and f.field_label_en and f.field_label_en != f.field_label:
-                line = f"{f.field_label} | {f.field_label_en}"
+                line = f"{f.field_label} · {f.field_label_en}"
             else:
                 line = f.field_label
             if exp_short:
@@ -880,7 +1037,7 @@ class ContextBuilder:
 
         for fg in sec.field_groups:
             if lang == 'en' and fg.group_name_en and fg.group_name_en != fg.group_name:
-                items.append(f"{fg.group_name} | {fg.group_name_en}")
+                items.append(f"{fg.group_name} · {fg.group_name_en}")
             else:
                 items.append(fg.group_name)
 
@@ -896,7 +1053,7 @@ class ContextBuilder:
                     exp_short = exp_short[0].lower() + exp_short[1:]
                 exp_short = exp_short.rstrip('.')
             if lang == 'en':
-                line = f"  {s.name} | {s.name_en}"
+                line = f"  {s.name} · {s.name_en}"
             else:
                 line = f"  {s.name}"
             if exp_short:
@@ -958,7 +1115,7 @@ class ContextBuilder:
         elif fg.fields:
             if lang == 'en':
                 lines.append("Fields: " + ", ".join(
-                    f"{f.field_label} | {f.field_label_en}" if f.field_label_en else f.field_label
+                    f"{f.field_label} · {f.field_label_en}" if f.field_label_en else f.field_label
                     for f in fg.fields
                 ))
             else:
@@ -1246,7 +1403,12 @@ class TaxFormAgent:
         # (e.g. "Landesverband der israelitischen Kultusgemeinden in Bayern")
         # as navigate targets and hit a "not found in form" path.
         if s.cursor.get('field'):
-            field_obj = self.fk.get_field(s.cursor['field'])
+            field_obj = self.fk.get_field_by_cursor(
+                s.cursor.get('section'),
+                s.cursor.get('subsection'),
+                s.cursor.get('field_group'),
+                s.cursor['field'],
+            )
             if field_obj and (field_obj.options or field_obj.options_en):
                 all_opts = (field_obj.options or []) + (field_obj.options_en or [])
                 if any(opt.strip().lower() == t for opt in all_opts):
@@ -1368,7 +1530,104 @@ class TaxFormAgent:
                     query = str(_sn)
                     sec_hint = _sn
 
-        if intent == INTENT_FOLLOWUP:
+        # Dismissal / non-applicability phrases: ALWAYS follow_up, regardless
+        # of what the LLM returned. These are answers to the current section,
+        # not navigation queries.
+        _dismissal_patterns = (
+            r"\b(?:don'?t|do not|dont)\s+(?:have|need)\b",
+            r"\b(?:haven'?t|have not|havent)\b",
+            r"\bhave\s+(?:no|none|never)\b",
+            r"\bno\s+(?:previous|prior|former|past)\b",
+            r"\bnot\s+(?:applicable|relevant|necessary|required)\b",
+            r"\b(?:doesn'?t|does not)\s+apply\b",
+            r"\bnone\s+of\s+(?:this|these|that)\s+(?:applies|apply)\b",
+            r"\b(?:isn'?t|is not)\s+relevant\b",
+            # "I'm not in / on / registered / using / part of ..."
+            r"\bi'?m\s+not\s+(?:in|on|at|registered|using|part|listed|enrolled)\b",
+            # "I've never been / had / done ..."
+            r"\bi'?ve\s+never\b",
+            # "this is my first business / time / job / ..."
+            r"\bthis\s+is\s+my\s+first\b",
+            # "I have only one X" / "just one X" — limiting, treated as
+            # dismissal of "multiple X" sections.
+            r"\b(?:only|just)\s+one\b",
+            r"\bich\s+habe\s+kein(?:e|en|er)?\b",
+            r"\bich\s+bin\s+nicht\b",
+            r"\bnicht\s+(?:zutreffend|relevant|umgezogen|eingetragen|registriert)\b",
+            r"\bkein(?:e|en|er)?\s+(?:frühere|vorherige|bisherige)\b",
+            # "noch nie selbständig / umgezogen / ..."
+            r"\bnoch\s+nie\b",
+            # "nur ein(e) Standort/Betrieb/..."
+            r"\bnur\s+ein(?:e|en|er)?\s+(?:standort|betrieb|filiale)\b",
+        )
+        _q_lower_full = query.strip().lower()
+        _is_dismissal = any(re.search(p, _q_lower_full) for p in _dismissal_patterns)
+        if _is_dismissal:
+            intent = INTENT_FOLLOWUP
+            query = user_input.strip()
+
+            # Fallback context extraction for dismissals — in case the LLM
+            # forgot user_context_update for "I don't have X" type messages.
+            _cursor_sec = s.cursor.get('section') if s.cursor else None
+            user_ctx = user_ctx if isinstance(user_ctx, dict) else {}
+            _generic_dismissal = re.search(
+                r"\b(?:doesn'?t|does not)\s+apply\b|"
+                r"\bnone\s+of\s+(?:this|these|that)\s+(?:applies|apply)\b|"
+                r"\bnot\s+(?:applicable|relevant)\b",
+                _q_lower_full)
+            if _cursor_sec == 6:
+                _has_addr_keyword = re.search(
+                    r"\b(?:address(?:es)?|adresse|umgezogen|moved|moving|prior\s+(?:home|residence)|previous\s+home)\b",
+                    _q_lower_full)
+                _has_tax_keyword = re.search(
+                    r"\b(?:tax\s+numbers?|steuernummer|prior\s+tax|previous\s+tax|"
+                    r"steuer.id|steuer.?nr|tax.?id)\b",
+                    _q_lower_full)
+                if _has_addr_keyword or _generic_dismissal:
+                    user_ctx.setdefault('recently_moved', 'no')
+                if _has_tax_keyword or _generic_dismissal:
+                    user_ctx.setdefault('had_previous_tax_number', 'no')
+            elif _cursor_sec == 5:
+                # Empfangsbevollmächtigte → has_representative=no
+                if (_generic_dismissal or re.search(
+                        r"\b(?:representative|bevollmächtigt|bevollmaechtigt|"
+                        r"empfangs|authoriz(?:ed|e))\b", _q_lower_full)):
+                    user_ctx.setdefault('has_representative', 'no')
+            elif _cursor_sec == 9:
+                # Betriebsstätten → has_multiple_locations=no
+                if (_generic_dismissal or re.search(
+                        r"\b(?:location|standort|branch|filiale|"
+                        r"betriebsst(?:ä|ae)tte|premise|other\s+place)s?\b",
+                        _q_lower_full)):
+                    user_ctx.setdefault('has_multiple_locations', 'no')
+            elif _cursor_sec == 10:
+                # Handelsregister → has_commercial_register=no
+                if (_generic_dismissal or re.search(
+                        r"\b(?:handelsregister|commercial\s+register|hr(?:b|a)|"
+                        r"register\s+entry|eingetragen)\b", _q_lower_full)):
+                    user_ctx.setdefault('has_commercial_register', 'no')
+            elif _cursor_sec == 12:
+                # Bisherige betriebliche → had_prior_business=no
+                if (_generic_dismissal or re.search(
+                        r"\b(?:prior|previous|former|first|never|"
+                        r"vorherig|frühere|fruehere|erst)\s+"
+                        r"(?:business|gewerbe|tätigkeit|taetigkeit|"
+                        r"self.?employ|selbständ|selbstaend)\b",
+                        _q_lower_full)
+                        or re.search(
+                        r"\b(?:never\s+been|first\s+(?:time|business)|"
+                        r"this\s+is\s+my\s+first|noch\s+nie)\b",
+                        _q_lower_full)):
+                    user_ctx.setdefault('had_prior_business', 'no')
+            elif _cursor_sec in (20, 21):
+                # OSS / Internet-Handel → online_shop=no
+                if (_generic_dismissal or re.search(
+                        r"\b(?:online|internet|web|e.?commerce|shop|"
+                        r"selling\s+online|verkauf|onlinehandel)\b",
+                        _q_lower_full)):
+                    user_ctx.setdefault('online_shop', 'no')
+
+        if intent == INTENT_FOLLOWUP and not _is_dismissal:
             q_lower = query.strip().lower()
             if len(q_lower) >= 4:
                 found = self.fk.search(q_lower, 'de')
@@ -1868,7 +2127,9 @@ class TaxFormAgent:
             q = query.strip().lower()
             at_query_location = False
             if cursor.field:
-                f = self.fk.get_field(cursor.field)
+                f = self.fk.get_field_by_cursor(
+                    cursor.section, cursor.subsection,
+                    cursor.field_group, cursor.field)
                 if f and (f.field_label.lower() == q or
                           (f.field_label_en or "").lower() == q):
                     at_query_location = True
@@ -2114,6 +2375,7 @@ class TaxFormAgent:
             personalization_hint=self._personalization_hint(
                 final_cursor, s.user_context, lang),
             on_chunk=on_chunk,
+            cursor=final_cursor.to_dict() if final_cursor else None,
         )
 
         if bc:
@@ -2485,8 +2747,12 @@ class TaxFormAgent:
                               lang: str) -> str:
         """Return a strong LLM directive when user context makes the current
         section/field irrelevant or tailored. Empty string otherwise."""
-        if not user_context or not cursor or not cursor.section:
+        if not cursor or not cursor.section:
             return ""
+        # Some rules (S13, S19) fire regardless of user_context — they encode
+        # facts about the form, not about the user. Keep `user_context` as a
+        # dict so .get() never blows up.
+        user_context = user_context or {}
 
         sec = cursor.section
         field = cursor.field
@@ -2531,10 +2797,120 @@ class TaxFormAgent:
                     'widowed': 'Nutzer ist verwitwet'}[ms]
             return _skip_de(2, r_de) if lang == 'de' else _skip_en(2, r_en)
 
+        # Group / subsection containing BOTH taxpayer and spouse rows
+        # (e.g. Section 14 → "Voraussichtliche Höhe der" / "Steuerabzugsbeträge"):
+        # tell LLM to mark spouse rows as N/A when the user is unmarried.
+        if ms in ('single', 'divorced', 'widowed') and sec != 2:
+            spouse_re = re.compile(r'(ehegatt|lebenspartner|ehepartner)',
+                                   re.IGNORECASE)
+            child_labels = []
+            if cursor.field_group:
+                fg_obj = self.fk.get_field_group(
+                    cursor.section, cursor.subsection, cursor.field_group)
+                if fg_obj:
+                    for f in fg_obj.fields:
+                        child_labels.append(f.field_label or "")
+                        child_labels.append(getattr(f, 'field_label_en', '') or "")
+            elif cursor.subsection and not cursor.field:
+                sub_obj = self.fk.get_subsection(cursor.section, cursor.subsection)
+                if sub_obj:
+                    for f in sub_obj.fields:
+                        child_labels.append(f.field_label or "")
+                    for fg in sub_obj.field_groups:
+                        child_labels.append(fg.group_name or "")
+                        child_labels.append(getattr(fg, 'group_name_en', '') or "")
+            if any(spouse_re.search(c) for c in child_labels if c) and not cursor.field:
+                r_en = {'single': 'user is unmarried',
+                        'divorced': 'user is divorced',
+                        'widowed': 'user is widowed'}[ms]
+                r_de = {'single': 'Nutzer ist nicht verheiratet',
+                        'divorced': 'Nutzer ist geschieden',
+                        'widowed': 'Nutzer ist verwitwet'}[ms]
+                if lang == 'de':
+                    return (f"[PERSONALISIERUNG — HINWEIS]\n"
+                            f"Grund: {r_de}. In dieser Auflistung gibt es sowohl "
+                            f"Steuerpflichtigen- als auch Ehegatten-/Lebenspartner-Felder.\n"
+                            f"In Ihrer Antwort: Listen Sie alle Felder auf, aber "
+                            f"markieren Sie die Ehegatte/Lebenspartner-Zeilen "
+                            f"explizit als 'leer lassen — Sie sind alleinstehend'. "
+                            f"Die Steuerpflichtigen-Felder erklären Sie normal.")
+                return (f"[PERSONALIZATION — HINT]\n"
+                        f"Reason: {r_en}. This listing contains both taxpayer "
+                        f"and spouse / partner fields.\n"
+                        f"In your response: list all fields, but explicitly mark "
+                        f"the spouse / partner rows as 'leave blank — you are "
+                        f"unmarried'. Explain the taxpayer rows normally.")
+
+        # Spouse-related FIELDS / GROUPS / SUBSECTIONS in OTHER sections:
+        # if user is unmarried, any element whose label contains
+        # "Ehegatt..." / "Lebenspartner..." / "Ehepartner..." is not relevant.
+        if ms in ('single', 'divorced', 'widowed') and sec != 2:
+            spouse_re = re.compile(r'(ehegatt|lebenspartner|ehepartner)',
+                                   re.IGNORECASE)
+            candidates = []
+            if field:
+                f_obj = self.fk.get_field_by_cursor(
+                    cursor.section, cursor.subsection,
+                    cursor.field_group, field)
+                if f_obj:
+                    candidates.append(f_obj.field_label or "")
+                    candidates.append(getattr(f_obj, 'field_label_en', '') or "")
+            if cursor.field_group:
+                candidates.append(cursor.field_group)
+            if cursor.subsection:
+                candidates.append(cursor.subsection)
+            if any(spouse_re.search(c) for c in candidates if c):
+                r_en = {'single': 'user is unmarried',
+                        'divorced': 'user is divorced',
+                        'widowed': 'user is widowed'}[ms]
+                r_de = {'single': 'Nutzer ist nicht verheiratet',
+                        'divorced': 'Nutzer ist geschieden',
+                        'widowed': 'Nutzer ist verwitwet'}[ms]
+                if lang == 'de':
+                    return (f"[PERSONALISIERUNG — HÖCHSTE PRIORITÄT]\n"
+                            f"Grund: {r_de}. Dieses Feld / dieser Eintrag betrifft "
+                            f"den Ehegatten / eingetragenen Lebenspartner und ist für "
+                            f"diesen Nutzer NICHT relevant.\n"
+                            f"Antworten Sie NUR so (kurz, KEINE lange Erklärung):\n"
+                            f"1. Sagen Sie in einem Satz, dass dieses Feld "
+                            f"leer gelassen werden kann, weil der Nutzer "
+                            f"alleinstehend ist. Verwenden Sie die Wörter "
+                            f"'leer lassen'.\n"
+                            f"2. Nennen Sie kurz, was hier normalerweise eingetragen "
+                            f"würde (Kontext-Info, nicht als Aufforderung).\n"
+                            f"3. Am Ende: der Navigations-Tipp.\n"
+                            f"BESCHREIBEN SIE NICHT, wie das Feld auszufüllen ist.")
+                return (f"[PERSONALIZATION — HIGHEST PRIORITY]\n"
+                        f"Reason: {r_en}. This field / entry is for the "
+                        f"spouse / registered partner and is NOT relevant "
+                        f"for this user.\n"
+                        f"Respond ONLY like this (short, NO long explanation):\n"
+                        f"1. In one sentence, say this entry can be left blank "
+                        f"because the user is unmarried. You MUST use the words "
+                        f"'leave' and 'blank'.\n"
+                        f"2. Briefly mention what would normally be entered here "
+                        f"(as context only, not as instructions).\n"
+                        f"3. Final line: the navigation tip.\n"
+                        f"DO NOT describe how to fill the field.")
+
         # Section 4 — Steuerliche Beratung: skip if no tax advisor
         if sec == 4 and ta == 'no':
             return (_skip_de(4, 'Nutzer hat keinen Steuerberater') if lang == 'de'
                     else _skip_en(4, 'user has no tax advisor'))
+
+        # Section 6 — Bisherige persönliche Verhältnisse: skip if user hasn't
+        # moved recently AND has no previous tax number
+        if sec == 6:
+            rm = user_context.get('recently_moved')
+            pt = user_context.get('had_previous_tax_number')
+            if rm == 'no' and pt == 'no':
+                return (_skip_de(6,
+                        'Nutzer ist nicht in den letzten 12 Monaten umgezogen und '
+                        'hatte keine frühere Steuernummer')
+                        if lang == 'de'
+                        else _skip_en(6,
+                        'user has not moved within the last 12 months and has '
+                        'no previous tax number'))
 
         # Section 17 — Lohnsteuer: skip if no employees
         if sec == 17 and emp == 'no':
@@ -2580,6 +2956,141 @@ class TaxFormAgent:
                     if lang == 'de'
                     else _skip_en(8, 'user works from home (no different place of management)'))
 
+        # Section 5 — Empfangsbevollmächtigte: skip if user has no representative
+        has_rep = user_context.get('has_representative')
+        if sec == 5 and has_rep == 'no':
+            return (_skip_de(5, 'Nutzer hat keinen Empfangsbevollmächtigten')
+                    if lang == 'de'
+                    else _skip_en(5, 'user has no authorized representative'))
+
+        # Section 9 — Betriebsstätten: skip if only one location
+        has_locs = user_context.get('has_multiple_locations')
+        if sec == 9 and has_locs == 'no':
+            return (_skip_de(9, 'Nutzer hat nur einen Standort (keine weiteren Betriebsstätten)')
+                    if lang == 'de'
+                    else _skip_en(9, 'user has only one location (no additional business premises)'))
+
+        # Section 10 — Handelsregister: skip if not registered
+        has_hr = user_context.get('has_commercial_register')
+        if sec == 10 and has_hr == 'no':
+            return (_skip_de(10, 'Nutzer ist nicht im Handelsregister eingetragen')
+                    if lang == 'de'
+                    else _skip_en(10, 'user is not registered in the commercial register'))
+
+        # Section 11 — Gründungsform: focus on Neugründung if new business
+        bt = user_context.get('business_type')
+        if sec == 11 and bt == 'new':
+            if lang == 'de':
+                return ("[PERSONALISIERUNG — HINWEIS]\n"
+                        "Der Nutzer gründet ein NEUES Unternehmen (Neugründung).\n"
+                        "In Ihrer Antwort: Listen Sie alle Unterabschnitte auf, aber "
+                        "betonen Sie, dass NUR 'Neugründung' relevant ist. "
+                        "Markieren Sie 'Übernahme', 'Verlegung', 'Einbringung' und "
+                        "'Umwandlung' explizit als 'leer lassen — Sie gründen neu'.")
+            return ("[PERSONALIZATION — HINT]\n"
+                    "The user is starting a NEW business (Neugründung).\n"
+                    "In your response: list all subsections, but emphasize that "
+                    "ONLY 'Neugründung' applies. Explicitly mark 'Übernahme' "
+                    "(acquisition), 'Verlegung' (relocation), 'Einbringung' "
+                    "(contribution), and 'Umwandlung' (conversion) as "
+                    "'leave blank — you are starting fresh'.")
+
+        # Section 12 — Bisherige betriebliche Verhältnisse: skip if no prior business
+        hpb = user_context.get('had_prior_business')
+        if sec == 12 and (hpb == 'no' or user_context.get('had_previous_tax_number') == 'no'):
+            return (_skip_de(12, 'Nutzer hat noch keine frühere selbständige Tätigkeit ausgeübt')
+                    if lang == 'de'
+                    else _skip_en(12, 'user has no prior self-employment / business activity'))
+
+        # Section 13 — Konzernzugehörigkeit: ALWAYS skip for sole proprietorship
+        # (this form is the Fragebogen for Einzelunternehmer, so corporate-group
+        # affiliation never applies to our users)
+        if sec == 13:
+            return (_skip_de(13, 'Einzelunternehmer gehören grundsätzlich nicht zu einem Konzern')
+                    if lang == 'de'
+                    else _skip_en(13, 'sole proprietorships never belong to a corporate group'))
+
+        # Section 16 — Bauabzugsteuer: skip if occupation is clearly not construction
+        if sec == 16 and occ:
+            occ_lower = occ.lower()
+            construction_kw = (
+                'bau', 'maurer', 'zimmer', 'dach', 'elektriker', 'installateur',
+                'klempner', 'sanitär', 'sanitar', 'fliesen', 'putz', 'gerüst',
+                'gerust', 'malern', 'maler', 'tischler', 'schreiner', 'baulei',
+                'construction', 'builder', 'plumber', 'electrician', 'carpenter',
+                'roofer', 'painter', 'mason', 'contractor', 'craftsman',
+            )
+            if not any(kw in occ_lower for kw in construction_kw):
+                return (_skip_de(16,
+                        f"Nutzer arbeitet als '{occ}' — keine Bauleistung im Sinne § 48 EStG")
+                        if lang == 'de'
+                        else _skip_en(16,
+                        f"user works as '{occ}' — not a construction trade under § 48 EStG"))
+
+        # Section 19 — Organschaft: ALWAYS skip for sole proprietorship
+        # (VAT/tax group only applies to GmbH/AG-type corporate structures)
+        if sec == 19:
+            return (_skip_de(19, 'Organschaft gilt nur für Kapitalgesellschaften, nicht für Einzelunternehmen')
+                    if lang == 'de'
+                    else _skip_en(19, 'tax group (Organschaft) only applies to corporations, not sole proprietorships'))
+
+        # Section 20 — One-Stop-Shop: skip if no online sales
+        os_ = user_context.get('online_shop')
+        if sec == 20 and os_ == 'no':
+            return (_skip_de(20, 'Nutzer betreibt keinen Online-Handel / keine EU-grenzüberschreitenden Verkäufe')
+                    if lang == 'de'
+                    else _skip_en(20, 'user has no online shop / no EU cross-border sales'))
+
+        # Section 21 — Internet-Handel: skip if no online sales
+        if sec == 21 and os_ == 'no':
+            return (_skip_de(21, 'Nutzer betreibt keinen Internet-Handel')
+                    if lang == 'de'
+                    else _skip_en(21, 'user has no internet-based trade'))
+
+        # Section 20/21 — occupation-based soft hint when online_shop is
+        # unknown. Most local-service occupations (teacher, cleaner, nurse,
+        # photographer for local events, etc.) have no cross-border B2C
+        # sales, so these sections are typically irrelevant — but we don't
+        # KNOW that, so we ask the user instead of hard-skipping.
+        if sec in (20, 21) and os_ != 'yes' and os_ != 'no' and occ:
+            occ_lower = occ.lower()
+            commerce_kw = (
+                'shop', 'store', 'online', 'e-commerce', 'ecommerce',
+                'ebay', 'etsy', 'amazon', 'dropship', 'retail',
+                'verkauf', 'handel', 'händler', 'haendler', 'web shop',
+                'webshop', 'internet sale', 'online seller', 'merchant',
+                'digital product', 'digital service', 'saas', 'app developer',
+            )
+            if not any(kw in occ_lower for kw in commerce_kw):
+                if lang == 'de':
+                    return (f"[PERSONALISIERUNG — HINWEIS]\n"
+                            f"Der Nutzer hat als Beruf angegeben: '{occ}'.\n"
+                            f"Dieser Abschnitt betrifft EU-grenzüberschreitenden "
+                            f"B2C-Verkauf von Waren / digitalen Dienstleistungen. "
+                            f"Für die meisten Dienstleister ohne Online-Shop ist "
+                            f"das nicht relevant.\n"
+                            f"Antworten Sie kurz: Sagen Sie, dass dieser Abschnitt "
+                            f"NUR ausgefüllt werden muss wenn der Nutzer Waren oder "
+                            f"digitale Dienste an Privatkunden in anderen EU-Ländern "
+                            f"verkauft (typischerweise über einen Online-Shop). "
+                            f"Fragen Sie EXPLIZIT, ob das auf '{occ}' zutrifft. "
+                            f"BESCHREIBEN SIE die Unterabschnitte NUR wenn der "
+                            f"Nutzer bestätigt, dass es relevant ist. "
+                            f"Verwenden Sie die Wörter 'wahrscheinlich nicht "
+                            f"relevant' und 'leer lassen falls'.")
+                return (f"[PERSONALIZATION — HINT]\n"
+                        f"User stated their occupation is: '{occ}'.\n"
+                        f"This section concerns EU CROSS-BORDER B2C sales of "
+                        f"goods or digital services. For most service providers "
+                        f"without an online shop, it is not relevant.\n"
+                        f"Respond briefly: state that this section is ONLY needed "
+                        f"if the user sells goods or digital services to private "
+                        f"customers in other EU countries (typically via an "
+                        f"online shop). EXPLICITLY ask whether that applies to "
+                        f"a '{occ}'. ONLY describe the subsections if the user "
+                        f"confirms it is relevant. You MUST use the phrase "
+                        f"'likely not relevant' and 'leave blank if'.")
+
         return ""
 
     # ── Explain ───────────────────────────────────────────────────────────────
@@ -2603,7 +3114,7 @@ class TaxFormAgent:
 
     def _explain(self, user_input, context, lang, intent, confusion,
                  cursor_bc, history, user_context_summary="", cursor_type=None,
-                 personalization_hint="", on_chunk=None) -> str:
+                 personalization_hint="", on_chunk=None, cursor=None) -> str:
         # follow_up — lightweight prompt with conversation history only
         if intent == INTENT_FOLLOWUP:
             position_hint = f"[Context: user is currently filling out {cursor_bc}]" if cursor_bc and cursor_bc != 'root' else ""
@@ -2619,6 +3130,7 @@ class TaxFormAgent:
             # structure so the LLM can reference sibling fields / parent
             # alternatives when answering contextual questions.
             current_section_detail = ""
+            current_field_detail = ""
             _cursor_sec = None
             if cursor_bc:
                 _m = re.match(r'(?:Section|Abschnitt)\s+(\d+)', cursor_bc)
@@ -2632,11 +3144,29 @@ class TaxFormAgent:
                 except Exception:
                     pass
 
+            # If cursor is on a specific field (especially one with select
+            # options), include that field's full detail — labels, options,
+            # explanation — so the LLM can answer questions about specific
+            # option values without losing context.
+            if cursor and isinstance(cursor, dict) and cursor.get('field'):
+                try:
+                    f_obj = self.fk.get_field_by_cursor(
+                        cursor.get('section'),
+                        cursor.get('subsection'),
+                        cursor.get('field_group'),
+                        cursor.get('field'),
+                    )
+                    if f_obj:
+                        current_field_detail = ("[CURRENT FIELD DETAIL]\n"
+                                                + self.ctx._field(f_obj, lang))
+                except Exception:
+                    pass
+
             nav_tip = ("🧭 Zur Navigation geben Sie eine Abschnittsnummer oder den DEUTSCHEN Namen eines Abschnitts, Unterabschnitts oder Feldes ein – z.B. '7', 'Kleinunternehmer-Regelung' oder 'Geburtsdatum'."
                     if lang == 'de' else
                     "🧭 To navigate the form, type a section number or the GERMAN name of a section, subsection, or field — e.g. '7', 'Kleinunternehmer-Regelung', or 'Geburtsdatum'.")
             lang_system = FOLLOWUP_SYSTEM + f"\n\nIMPORTANT: Always respond in {'German' if lang == 'de' else 'English'}, regardless of the language the user writes in. If the user describes a situation that makes a DIFFERENT field in the current section more appropriate (e.g. foreign bank instead of domestic), explicitly name and recommend that sibling field using its exact German name. Always end with exactly: {nav_tip}"
-            user_msg = "\n\n".join(filter(None, [personalization_hint, position_hint, user_ctx_hint, current_section_detail, sec_index, user_input]))
+            user_msg = "\n\n".join(filter(None, [personalization_hint, position_hint, user_ctx_hint, current_field_detail, current_section_detail, sec_index, user_input]))
             messages = list(history) + [{"role": "user", "content": user_msg}]
             return self._complete_or_stream(
                 on_chunk,

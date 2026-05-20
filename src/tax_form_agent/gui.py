@@ -1,5 +1,5 @@
 """
-Tax Form Assistant — PyQt6 GUI
+Tax Form Assistant — PySide6 GUI
 Run:  python src/tax_form_agent/gui_qt.py
 """
 import html as _html_mod
@@ -10,13 +10,13 @@ import subprocess
 import sys
 import threading
 
-from PyQt6.QtWidgets import (
+from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QScrollArea, QLabel, QTextEdit, QPushButton, QFrame, QSizePolicy,
     QLineEdit, QDialog, QCheckBox, QMessageBox,
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QObject, QTimer, QEvent
-from PyQt6.QtGui import QFont, QFontDatabase, QCursor
+from PySide6.QtCore import Qt, Signal, QObject, QTimer, QEvent
+from PySide6.QtGui import QFont, QFontDatabase, QCursor
 
 # ── Palette ──────────────────────────────────────────────────────────────
 C_ACCENT     = "#4A7CF7"
@@ -197,7 +197,7 @@ class BotBubble(QTextEdit):
         Qt's default keeps the selection visible indefinitely until the
         user clicks elsewhere, which feels stuck when copying repeatedly."""
         super().keyPressEvent(event)
-        from PyQt6.QtGui import QKeySequence
+        from PySide6.QtGui import QKeySequence
         if event.matches(QKeySequence.StandardKey.Copy):
             cursor = self.textCursor()
             cursor.clearSelection()
@@ -216,10 +216,14 @@ class BotBubble(QTextEdit):
         """Clear the selection when this bubble loses focus — by default Qt
         keeps the highlight visible indefinitely until the user clicks back
         inside. That feels stuck when the user selected text just to read
-        it, then clicked elsewhere without copying."""
-        cursor = self.textCursor()
-        cursor.clearSelection()
-        self.setTextCursor(cursor)
+        it, then clicked elsewhere without copying.
+
+        Exception: when focus moves to a popup (our own context menu), keep
+        the selection so the menu's Copy action has something to copy."""
+        if event.reason() != Qt.FocusReason.PopupFocusReason:
+            cursor = self.textCursor()
+            cursor.clearSelection()
+            self.setTextCursor(cursor)
         super().focusOutEvent(event)
 
     def eventFilter(self, obj, event):
@@ -366,9 +370,9 @@ class AgentSignals(QObject):
     # First arg is the request generation captured by the worker — used by
     # the main-thread handlers to drop signals that belong to a request
     # that's already been invalidated by Reset / language toggle / API change.
-    reply_ready = pyqtSignal(int, str)
-    chunk_arrived = pyqtSignal(int, str)
-    auth_failed = pyqtSignal(int)
+    reply_ready = Signal(int, str)
+    chunk_arrived = Signal(int, str)
+    auth_failed = Signal(int)
 
 
 # ── Main window ───────────────────────────────────────────────────────────
@@ -600,7 +604,7 @@ class ChatWindow(QMainWindow):
 
     # ── Event filter for Enter / Shift+Enter ────────────────────────────
     def eventFilter(self, obj, event):
-        from PyQt6.QtCore import QEvent
+        from PySide6.QtCore import QEvent
         if obj is self.input and event.type() == QEvent.Type.KeyPress:
             if event.key() == Qt.Key.Key_Return and not (
                 event.modifiers() & Qt.KeyboardModifier.ShiftModifier
@@ -1011,7 +1015,11 @@ class ChatWindow(QMainWindow):
             widget = item.widget()
             if not widget:
                 continue
-            for child in widget.findChildren((BotBubble, UserBubble)):
+            for child in widget.findChildren(BotBubble):
+                role = child.property("bubble_role")
+                if role in ("bot", "user"):
+                    yield child, role
+            for child in widget.findChildren(UserBubble):
                 role = child.property("bubble_role")
                 if role in ("bot", "user"):
                     yield child, role
@@ -1032,7 +1040,7 @@ class ChatWindow(QMainWindow):
     def _reflow_bubbles(self):
         """Recompute widths AND heights for all chat bubbles. Called on
         resize, on bubble creation, and after streaming completes."""
-        from PyQt6.QtGui import QFontMetrics
+        from PySide6.QtGui import QFontMetrics
         w = self.width()
         for child, role in self._iter_bubbles():
             max_w = int(w * (0.70 if role == "bot" else 0.62))
@@ -1364,7 +1372,7 @@ def main():
     for icon_name in ("icon.icns", "icon.ico", "icon.png"):
         p = os.path.join(root, icon_name)
         if os.path.exists(p):
-            from PyQt6.QtGui import QIcon
+            from PySide6.QtGui import QIcon
             app.setWindowIcon(QIcon(p))
             break
     _install_fonts()

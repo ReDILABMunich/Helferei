@@ -270,6 +270,96 @@ class FormKnowledge:
     def get_field(self, name: str) -> Optional[FormField]:
         return self.all_fields.get(name)
 
+    def get_field_by_cursor(self, sec_num: Optional[int],
+                            sub_name: Optional[str],
+                            grp_name: Optional[str],
+                            field_name: str) -> Optional[FormField]:
+        """Resolve a field by its full path. Many fields share field_name
+        across sections (e.g. 'art', 'postleitzahl', 'strasse'), so
+        get_field(name) alone returns the wrong one. This walks the actual
+        tree using the cursor's section/subsection/group context."""
+        if not sec_num:
+            return self.all_fields.get(field_name)
+
+        def _find_in_group(fg: FormFieldGroup) -> Optional[FormField]:
+            for f in fg.fields:
+                if f.field_name == field_name:
+                    return f
+            for nested in fg.field_groups:
+                hit = _find_in_group(nested)
+                if hit:
+                    return hit
+            return None
+
+        def _find_in_subsection(sub) -> Optional[FormField]:
+            for f in sub.fields:
+                if f.field_name == field_name:
+                    return f
+            if grp_name:
+                for fg in sub.field_groups:
+                    if fg.group_name == grp_name:
+                        hit = _find_in_group(fg)
+                        if hit:
+                            return hit
+            else:
+                for fg in sub.field_groups:
+                    hit = _find_in_group(fg)
+                    if hit:
+                        return hit
+            if hasattr(sub, 'subsections') and sub.subsections:
+                for nested_sub in sub.subsections:
+                    hit = _find_in_subsection(nested_sub)
+                    if hit:
+                        return hit
+            return None
+
+        sec = self.get_section(sec_num)
+        if not sec:
+            return self.all_fields.get(field_name)
+
+        # Direct fields at section level
+        for f in sec.fields:
+            if f.field_name == field_name:
+                return f
+
+        # Subsection-scoped
+        if sub_name:
+            for sub in sec.subsections:
+                if sub.name == sub_name:
+                    hit = _find_in_subsection(sub)
+                    if hit:
+                        return hit
+                # Search nested subsections too
+                if hasattr(sub, 'subsections') and sub.subsections:
+                    for nested in sub.subsections:
+                        if nested.name == sub_name:
+                            hit = _find_in_subsection(nested)
+                            if hit:
+                                return hit
+        else:
+            # No subsection given — try direct section-level field groups
+            for fg in sec.field_groups:
+                if grp_name and fg.group_name == grp_name:
+                    hit = _find_in_group(fg)
+                    if hit:
+                        return hit
+                elif not grp_name:
+                    hit = _find_in_group(fg)
+                    if hit:
+                        return hit
+
+        # Fallback: scan whole section
+        for sub in sec.subsections:
+            hit = _find_in_subsection(sub)
+            if hit:
+                return hit
+        for fg in sec.field_groups:
+            hit = _find_in_group(fg)
+            if hit:
+                return hit
+
+        return self.all_fields.get(field_name)
+
     # ── Search ────────────────────────────────────────────────────────────────
 
     def search(self, query: str, lang: str = 'en',

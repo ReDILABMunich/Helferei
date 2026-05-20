@@ -83,7 +83,7 @@ manually via the *Actions* tab on GitHub.
 ├── run.sh                         # macOS/Linux launcher
 ├── run.bat                        # Windows launcher
 ├── setup.py                       # Python package metadata (CLI entry point)
-├── requirements.txt               # PyQt6, certifi
+├── requirements.txt               # PySide6, certifi
 ├── config.example.json            # Config template — copy to config.json
 ├── tax_form_app.spec              # PyInstaller spec — macOS
 ├── tax_form_app_win.spec          # PyInstaller spec — Windows
@@ -95,7 +95,7 @@ manually via the *Actions* tab on GitHub.
 ├── fonts/                         # DM Sans — bundled into the app
 ├── src/tax_form_agent/
 │   ├── __init__.py
-│   ├── gui.py                     # Desktop GUI (PyQt6)
+│   ├── gui.py                     # Desktop GUI (PySide6)
 │   ├── agent.py                   # Conversation agent (core)
 │   ├── form_knowledge.py          # Form structure parser & search
 │   ├── llm_client.py              # OpenAI API client (raw HTTP)
