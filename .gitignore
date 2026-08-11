@@ -1,0 +1,13 @@
+# Python (Bruno desktop app)
+venv/
+__pycache__/
+*.pyc
+
+# Local config with secrets (contains OpenAI API key)
+config.json
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
