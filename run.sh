@@ -15,4 +15,5 @@ else
     source venv/bin/activate
 fi
 
-python3 src/tax_form_agent/gui.py
+#python3 src/tax_form_agent/gui.py
+PYTHONPATH=src python src/tax_form_agent/gui.py
