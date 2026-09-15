@@ -1,4 +1,4 @@
-const BASE_URL = "/api";
+const BASE_URL = import.meta.env.DEV ? "/api" : "https://helferei.onrender.com";
 
 export async function ping(): Promise<string> {
   const response = await fetch(`${BASE_URL}/`);
