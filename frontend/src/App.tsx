@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { sendMessage } from "./lib/mockEngine";
-import { ping } from "./lib/api";
+import ReactMarkdown from "react-markdown";
+import { ping, sendChat } from "./lib/api";
 import "./App.css";
 
 type Message = {
@@ -21,8 +21,8 @@ function App() {
     setLoading(true);
 
     try {
-      const response = await sendMessage({ message: text, language: "en" });
-      const botMessage: Message = { role: "bot", text: response.reply };
+      const reply = await sendChat(text);
+      const botMessage: Message = { role: "bot", text: reply };
       setMessages((previous) => [...previous, botMessage]);
     } catch (err) {
       console.log(err);
@@ -69,9 +69,14 @@ function App() {
       {backendMessage && <p>{backendMessage}</p>}
       <div>
         {messages.map((message, index) => (
-          <p key={index}>
-            <strong>{message.role}:</strong> {message.text}
-          </p>
+          <div key={index} className="message">
+            <strong>{message.role}:</strong>
+            {message.role === "bot" ? (
+              <ReactMarkdown>{message.text}</ReactMarkdown>
+            ) : (
+              <span> {message.text}</span>
+            )}
+          </div>
         ))}
       </div>
       {loading && <p>...</p>}

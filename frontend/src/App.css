@@ -3,3 +3,17 @@
   margin: 0 auto;
   padding: 2rem 1rem;
 }
+
+.message {
+  margin: 1rem 0;
+}
+
+.message p {
+  margin: 0.4rem 0;
+}
+
+.message ul,
+.message ol {
+  margin: 0.4rem 0;
+  padding-left: 1.4rem;
+}
