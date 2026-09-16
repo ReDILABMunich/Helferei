@@ -25,7 +25,7 @@ class ChatResponse(BaseModel):
 
 @app.get("/")
 def root():
-    return {"message": "Hello from Helferei Backend"}
+    return {"message": "Hello from Helferei Backend, test rendering a branch"}
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
