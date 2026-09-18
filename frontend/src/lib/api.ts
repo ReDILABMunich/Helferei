@@ -11,11 +11,22 @@ export async function ping(): Promise<string> {
   return data.message;
 }
 
-export async function sendChat(text: string): Promise<string> {
+export type ChatReply = {
+  answer: string;
+  responseId: string;
+};
+
+export async function sendChat(
+  text: string,
+  previousResponseId: string | null,
+): Promise<ChatReply> {
   const response = await fetch(`${BASE_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: text }),
+    body: JSON.stringify({
+      message: text,
+      previous_response_id: previousResponseId,
+    }),
   });
 
   if (!response.ok) {
@@ -23,5 +34,5 @@ export async function sendChat(text: string): Promise<string> {
   }
 
   const data = await response.json();
-  return data.answer;
+  return { answer: data.answer, responseId: data.response_id };
 }

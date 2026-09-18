@@ -15,15 +15,17 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [lastMessage, setLastMessage] = useState("");
   const [backendMessage, setBackendMessage] = useState<string | null>(null);
+  const [responseId, setResponseId] = useState<string | null>(null);
 
   async function send(text: string) {
     setError(null);
     setLoading(true);
 
     try {
-      const reply = await sendChat(text);
-      const botMessage: Message = { role: "bot", text: reply };
+      const reply = await sendChat(text, responseId);
+      const botMessage: Message = { role: "bot", text: reply.answer };
       setMessages((previous) => [...previous, botMessage]);
+      setResponseId(reply.responseId);
     } catch (err) {
       console.log(err);
       setError("Something went wrong. Please try again.");
