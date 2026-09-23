@@ -1,12 +1,11 @@
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
+import ChatHeader from "./components/ChatHeader";
+import MessageList from "./components/MessageList";
+import MessageInput from "./components/MessageInput";
+import ErrorCard from "./components/ErrorCard";
 import { sendChat } from "./lib/api";
+import type { Message } from "./types";
 import "./App.css";
-
-type Message = {
-  role: "user" | "bot";
-  text: string;
-};
 
 function App() {
   const [input, setInput] = useState("");
@@ -47,35 +46,16 @@ function App() {
 
   return (
     <main className="app">
-      <h1>Helferei Chat</h1>
-      <div>
-        {messages.map((message, index) => (
-          <div key={index} className="message">
-            <strong>{message.role}:</strong>
-            {message.role === "bot" ? (
-              <ReactMarkdown>{message.text}</ReactMarkdown>
-            ) : (
-              <span> {message.text}</span>
-            )}
-          </div>
-        ))}
-      </div>
+      <ChatHeader />
+      <MessageList messages={messages} />
       {loading && <p>...</p>}
-      {error && (
-        <p>
-          {error} <button onClick={() => send(lastMessage)}>Try again</button>
-        </p>
-      )}
-      <input
-        placeholder="Type a message"
+      {error && <ErrorCard text={error} onRetry={() => send(lastMessage)} />}
+      <MessageInput
         value={input}
-        onChange={(e) => setInput(e.target.value)}
+        onChange={setInput}
+        onSend={handleSend}
+        disabled={loading}
       />
-      <button
-        onClick={handleSend}
-        disabled={loading}>
-        Send
-      </button>
     </main>
   );
 }
