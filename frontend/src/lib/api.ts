@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.DEV ? "/api" : "https://helferei.onrender.com";
+const BASE_URL = "https://helferei.onrender.com";
 
 export type ChatReply = {
   answer: string;
