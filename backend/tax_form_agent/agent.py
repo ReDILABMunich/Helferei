@@ -1173,6 +1173,14 @@ class TaxFormAgent:
     def get_cursor(self, tid) -> str:
         return self._s(tid).cursor_breadcrumb()
 
+    def get_breadcrumb(self, tid) -> str:
+        """User-facing position: localized, with section names and field labels.
+
+        This is the string chat() prefixes onto its replies. get_cursor() is the
+        compact debug/prompt form — English-only, raw field keys."""
+        s = self._s(tid)
+        return self._format_breadcrumb(FormCursor.from_dict(s.cursor), s.lang)
+
     # ── Main entry point ──────────────────────────────────────────────────────
 
     def chat(self, user_input: str, thread_id: str = "default", on_chunk=None) -> str:
