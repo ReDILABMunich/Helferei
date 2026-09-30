@@ -1,11 +1,11 @@
 import { useState } from "react";
-import ChatHeader from "./components/ChatHeader";
+import AppHeader from "./components/AppHeader";
 import MessageList from "./components/MessageList";
 import MessageInput from "./components/MessageInput";
 import ErrorCard from "./components/ErrorCard";
 import { sendChat } from "./lib/api";
+import { en } from "./content/en";
 import type { Message } from "./types";
-import "./App.css";
 
 function App() {
   const [input, setInput] = useState("");
@@ -44,19 +44,31 @@ function App() {
     await send(text);
   }
 
+  // Üç bant: header ve footer sabit, sadece ortadaki bant kayar.
   return (
-    <main className="app">
-      <ChatHeader />
-      <MessageList messages={messages} />
-      {loading && <p>...</p>}
-      {error && <ErrorCard text={error} onRetry={() => send(lastMessage)} />}
-      <MessageInput
-        value={input}
-        onChange={setInput}
-        onSend={handleSend}
-        disabled={loading}
-      />
-    </main>
+    <div className="flex h-dvh flex-col bg-neutral-50">
+      <AppHeader onNewChat={() => {}} />
+
+      <main className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-[1012px] space-y-6 px-5 py-6 lg:px-8">
+          <MessageList messages={messages} />
+          {loading && <p>...</p>}
+          {error && <ErrorCard text={error} onRetry={() => send(lastMessage)} />}
+        </div>
+      </main>
+
+      <footer className="bg-neutral-50 pb-3">
+        <div className="mx-auto max-w-[1012px] px-5 lg:px-8">
+          <MessageInput
+            value={input}
+            onChange={setInput}
+            onSend={handleSend}
+            disabled={loading}
+          />
+          <p className="mt-2 text-center text-caption text-neutral-500">{en.disclaimer}</p>
+        </div>
+      </footer>
+    </div>
   );
 }
 
