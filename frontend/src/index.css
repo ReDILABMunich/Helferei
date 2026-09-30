@@ -1,12 +1,144 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Montserrat:wght@700&display=swap");
+@import "tailwindcss";
+
+/*
+  Noha'nın design system'i.
+  Burası tek kaynak: renk / tipografi / radius token'ları sadece burada tanımlanır,
+  component'lerde asla ham hex veya px yazılmaz.
+*/
+@theme {
+  /* ---- Fontlar ---- */
+  /* Montserrat Bold sadece logo ve başlıklar. Gövdenin tamamı Lato. */
+  --font-sans: "Lato", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+
+  /* ---- Tipografi ölçeği ----
+     Lato'nun Google Fonts'ta Medium (500) / SemiBold (600) ağırlığı yok.
+     Tarayıcı font-weight:500'ü 400'e, 600'ü 700'e eşler; yani
+     font-medium -> Regular, font-semibold -> Bold olarak görünür. */
+  --text-h1: 48px;
+  --text-h1--line-height: 1.2;
+  --text-h2: 32px;
+  --text-h2--line-height: 1.2;
+  --text-h3: 24px;
+  --text-h3--line-height: 1.2;
+  --text-h4: 20px;
+  --text-h4--line-height: 1.35;
+  --text-h5: 18px;
+  --text-h5--line-height: 1.45;
+  --text-body: 16px;
+  --text-body--line-height: 1.5;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 1.45;
+  --text-caption: 12px;
+  --text-caption--line-height: 1.3;
+  --text-footnote: 10px;
+  --text-footnote--line-height: 1.2;
+
+  /* ---- Radius ölçeği ---- */
+  --radius-0: 0px;
+  --radius-4: 4px;
+  --radius-8: 8px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-20: 20px;
+  --radius-24: 24px;
+  --radius-48: 48px;
+  --radius-1000: 1000px;
+
+  /* ---- Brand Primary (sarı) ---- */
+  --color-brand-50: #fffae8;
+  --color-brand-100: #fff1be;
+  --color-brand-200: #ffe895;
+  --color-brand-300: #ffdf6b;
+  --color-brand-400: #ffd642;
+  --color-brand-500: #f9c818;
+  --color-brand-600: #d0a405;
+  --color-brand-700: #a78300;
+  --color-brand-800: #7f6300;
+  --color-brand-900: #564300;
+
+  /* ---- Brand Secondary (mercan) ---- */
+  --color-coral-50: #fff1ed;
+  --color-coral-100: #ffd3c6;
+  --color-coral-200: #ffb59f;
+  --color-coral-300: #ff9778;
+  --color-coral-400: #fc7750;
+  --color-coral-500: #fc7750;
+  --color-coral-600: #e56c49;
+  --color-coral-700: #b35439;
+  --color-coral-800: #8b412c;
+  --color-coral-900: #6a3222;
+
+  /* ---- Neutral ---- */
+  --color-neutral-50: #f2f2f2;
+  --color-neutral-100: #e2e3e4;
+  --color-neutral-200: #cccccc;
+  --color-neutral-300: #b3b3b3;
+  --color-neutral-400: #999999;
+  --color-neutral-500: #808080;
+  --color-neutral-600: #666666;
+  --color-neutral-700: #4d4d4d;
+  --color-neutral-800: #333333;
+  --color-neutral-900: #1a1a1a;
+
+  /* ---- Red (hata) ---- */
+  --color-red-50: #ffe8e8;
+  --color-red-100: #ffb4b4;
+  --color-red-200: #ff8181;
+  --color-red-300: #ff4d4d;
+  --color-red-400: #fa1919;
+  --color-red-500: #d80909;
+  --color-red-600: #b60000;
+  --color-red-700: #940000;
+  --color-red-800: #720000;
+  --color-red-900: #500000;
+
+  /* ---- Blue (bilgi) ---- */
+  --color-blue-50: #e8eeff;
+  --color-blue-100: #bfd0ff;
+  --color-blue-200: #95b1ff;
+  --color-blue-300: #6c93ff;
+  --color-blue-400: #4375ff;
+  --color-blue-500: #1955fa;
+  --color-blue-600: #063cd1;
+  --color-blue-700: #002da8;
+  --color-blue-800: #002280;
+  --color-blue-900: #001757;
+
+  /* ---- Orange (uyarı) ---- */
+  --color-orange-50: #fff1e8;
+  --color-orange-100: #ffd3b4;
+  --color-orange-200: #ffb581;
+  --color-orange-300: #ff974d;
+  --color-orange-400: #fa7719;
+  --color-orange-500: #d85f09;
+  --color-orange-600: #b64c00;
+  --color-orange-700: #943e00;
+  --color-orange-800: #723000;
+  --color-orange-900: #502100;
+
+  /* ---- Green (başarı) ---- */
+  --color-green-50: #e9ffed;
+  --color-green-100: #b9ffc5;
+  --color-green-200: #89ff9d;
+  --color-green-300: #5aff75;
+  --color-green-400: #2aff4d;
+  --color-green-500: #17e539;
+  --color-green-600: #07c327;
+  --color-green-700: #00a11b;
+  --color-green-800: #007f15;
+  --color-green-900: #005d10;
 }
 
-* {
-  box-sizing: border-box;
-}
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
 
-body {
-  margin: 0;
+  body {
+    @apply bg-neutral-50 font-sans text-body text-neutral-900 antialiased;
+  }
 }
