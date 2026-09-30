@@ -44,6 +44,8 @@ export const en = {
     openMenu: "Open menu",
     closeMenu: "Close menu",
     closeDialog: "Close dialog",
+    expandHint: "Show the hint",
+    collapseHint: "Hide the hint",
     switchToGerman: "Switch to German (not available yet)",
   },
 };

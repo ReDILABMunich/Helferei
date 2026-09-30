@@ -35,6 +35,11 @@
   --text-footnote: 10px;
   --text-footnote--line-height: 1.2;
 
+  /* ---- Gölge ----
+     Figma'daki "Shadow/Normal" stili: X 0, Y 4, Blur 4, Spread 0, #000000 %25.
+     Yüzeylerin hiçbirinde çerçeve yok; kenarı bu gölge tanımlıyor. */
+  --shadow-normal: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+
   /* ---- Radius ölçeği ---- */
   --radius-0: 0px;
   --radius-4: 4px;
@@ -140,5 +145,83 @@
 
   body {
     @apply bg-neutral-50 font-sans text-body text-neutral-900 antialiased;
+  }
+}
+
+@layer components {
+  /* react-markdown çıplak HTML üretir, Tailwind'in preflight'ı da liste
+     işaretlerini ve başlık boyutlarını sıfırlar. Bunu JSX'te arbitrary
+     variant'larla ([&_ul]:list-disc gibi) yazmak component'i okunmaz hale
+     getirdiği için burada duruyor.
+     overflow-wrap: Almanca bileşik kelimeler ve URL'ler balonu genişletmesin. */
+  .bot-prose {
+    overflow-wrap: anywhere;
+  }
+  .bot-prose > * + * {
+    margin-top: 1rem;
+  }
+  .bot-prose h1,
+  .bot-prose h2,
+  .bot-prose h3,
+  .bot-prose h4 {
+    font-weight: 700;
+    font-size: 1.125em;
+  }
+  .bot-prose ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+  }
+  .bot-prose ol {
+    list-style: decimal;
+    padding-left: 1.5rem;
+  }
+  .bot-prose li + li {
+    margin-top: 0.25rem;
+  }
+  .bot-prose strong {
+    font-weight: 700;
+  }
+  .bot-prose a {
+    color: var(--color-blue-600);
+    text-decoration: underline;
+  }
+  .bot-prose code {
+    font-family: ui-monospace, monospace;
+    font-size: 0.875em;
+    background: var(--color-neutral-50);
+    padding: 0.1em 0.3em;
+    border-radius: var(--radius-4);
+  }
+  .bot-prose pre {
+    overflow-x: auto;
+    background: var(--color-neutral-50);
+    padding: 0.75rem;
+    border-radius: var(--radius-8);
+  }
+}
+
+@layer components {
+  /* Thinking göstergesindeki dört nokta sırayla parlıyor. */
+  @keyframes atlas-dot {
+    0%,
+    80%,
+    100% {
+      opacity: 0.25;
+    }
+    40% {
+      opacity: 1;
+    }
+  }
+
+  .atlas-dot {
+    animation: atlas-dot 1.4s infinite both;
+  }
+
+  /* Hareketi azalt ayarı açıksa noktalar sabit kalsın. */
+  @media (prefers-reduced-motion: reduce) {
+    .atlas-dot {
+      animation: none;
+      opacity: 0.6;
+    }
   }
 }
