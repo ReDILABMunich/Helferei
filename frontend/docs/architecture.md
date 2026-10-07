@@ -66,3 +66,43 @@ classDiagram
 - **Message**: one bubble. `breadcrumb` is only set on bot messages.
 - **ChatRequest / ChatReply**: the shape of `POST /chat` on the backend. Field names follow the backend (`session_id`, `lang`).
 - **InterfaceText**: every piece of text the interface shows, including the welcome message. One set per language. See [decision 001](../decisions/001-welcome-message-is-interface-text.md).
+
+## Package diagram
+
+The layers of `frontend/src` and the direction they depend on each other. An arrow means "imports from". Imports only go downwards. A lower layer never imports a higher one.
+
+```mermaid
+flowchart TD
+    app["app<br/>main.tsx, App.tsx"]
+    components["components<br/>components/"]
+    hooks["hooks<br/>hooks/"]
+    api["api<br/>api/"]
+    content["content<br/>content/"]
+    types["types<br/>types.ts"]
+
+    app --> components
+    app --> hooks
+    app --> content
+    components --> content
+    components --> types
+    hooks --> api
+    hooks --> types
+    api --> types
+    content --> types
+```
+
+| Layer | Folder | Does | May import |
+|---|---|---|---|
+| app | `main.tsx`, `App.tsx` | Puts the screen together and passes data to the components. | components, hooks, content, types |
+| components | `components/` | Draws the interface from the props it gets. Does not talk to the backend. | content, types |
+| hooks | `hooks/` | Holds the conversation state and its rules (sending, failing, retrying, resetting). | api, types |
+| api | `api/` | Sends `POST /chat` and turns the reply into a `ChatReply`. | types |
+| content | `content/` | Interface text, one file per language. | types |
+| types | `types.ts` | The types from the class diagram. | nothing |
+
+Rules:
+
+1. No layer imports a layer above it.
+2. `components` never imports `api` or `hooks`. Data reaches a component only through props.
+3. `types` imports nothing from the project.
+4. No circular imports.
