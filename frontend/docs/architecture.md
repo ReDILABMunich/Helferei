@@ -106,3 +106,9 @@ Rules:
 2. `components` never imports `api` or `hooks`. Data reaches a component only through props. See [decision 002](../decisions/002-only-hooks-talk-to-the-backend.md).
 3. `types` imports nothing from the project.
 4. No circular imports.
+
+### How the rules are checked
+
+dependency-cruiser checks the rules on every `npm run lint`. The rules live in `.dependency-cruiser.cjs`.
+
+One violation already existed when the check was added: `App.tsx` imports `lib/api.ts` directly. It is listed in `.dependency-cruiser-known-violations.json`, so lint stays green, but any new violation fails. Ticket 1 moves the request into a hook and the `api/` folder; after that, the entry is removed from the list.
