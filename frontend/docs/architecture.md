@@ -103,6 +103,6 @@ flowchart TD
 Rules:
 
 1. No layer imports a layer above it.
-2. `components` never imports `api` or `hooks`. Data reaches a component only through props.
+2. `components` never imports `api` or `hooks`. Data reaches a component only through props. See [decision 002](../decisions/002-only-hooks-talk-to-the-backend.md).
 3. `types` imports nothing from the project.
 4. No circular imports.
