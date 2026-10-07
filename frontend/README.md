@@ -1,32 +1,11 @@
-# React + TypeScript + Vite
+# Atlas Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Atlas is the web version of the agent that explains the German tax registration form (Fragebogen zur steuerlichen Erfassung für Einzelunternehmen).
 
-Currently, two official plugins are available:
+## Problem
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+People who are starting to work as self-employed in Germany struggle to understand the tax registration form. The form is in German and uses technical tax language.
 
-## React Compiler
+## MVP
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Anyone who opens the Atlas web app can find out what a field of the tax registration form means by chatting with the existing agent in English or German.
