@@ -1,0 +1,16 @@
+[
+  {
+    "type": "dependency",
+    "from": "src/App.tsx",
+    "to": "src/lib/api.ts",
+    "unresolvedTo": "./lib/api",
+    "dependencyTypes": [
+      "local",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "app-only-to-allowed-layers"
+    }
+  }
+]
