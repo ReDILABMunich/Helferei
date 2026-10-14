@@ -64,6 +64,33 @@ def _strip_breadcrumb(answer: str) -> str:
     return answer
 
 
+def _strip_nav_tip(answer: str) -> str:
+    """Drop the trailing "🧭 To navigate the form..." tip.
+
+    FOLLOWUP_SYSTEM orders the model to end every follow-up answer with it
+    (agent.py:3176) as a terminator, so its output shape stays predictable. It
+    was never meant to be read on every turn — the desktop app strips it the
+    same way (src/tax_form_agent/gui.py:897).
+
+    rfind, not a regex: if the model emits 🧭 mid-answer, a greedy regex would
+    discard everything after it. Only the last occurrence counts, and only when
+    it looks like a tail rather than part of the body.
+    """
+    idx = answer.rfind("🧭")
+    if idx < 0 or len(answer) - idx > 400:
+        return answer
+    nl = answer.rfind("\n", 0, idx)
+    if nl >= 0:
+        # The tip starts on its own line — cut from that line onward.
+        stripped = answer[:nl + 1].rstrip()
+    else:
+        # No newline before it: keep whatever body precedes it on the same
+        # line, or a short reply would lose its entire content.
+        stripped = answer[:idx].rstrip()
+    # If the tip was the whole reply, keep it — better than a blank bubble.
+    return stripped or answer
+
+
 @app.get("/")
 def root():
     return {"message": "Hello from Helferei Backend, test rendering a branch"}
@@ -98,7 +125,7 @@ def chat(request: ChatRequest):
         raise HTTPException(status_code=502, detail=f"AI request failed: {e}")
 
     return ChatResponse(
-        answer=_strip_breadcrumb(answer),
+        answer=_strip_nav_tip(_strip_breadcrumb(answer)),
         session_id=session_id,
         # After chat(), never before: chat() moves the cursor as a side effect.
         breadcrumb=agent.get_breadcrumb(session_id),
