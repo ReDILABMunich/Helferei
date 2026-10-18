@@ -1,5 +1,7 @@
 import AppHeader from "./components/AppHeader";
+import Disclaimer from "./components/Disclaimer";
 import ErrorMessage from "./components/ErrorMessage";
+import HintStrip from "./components/HintStrip";
 import MessageInput from "./components/MessageInput";
 import MessageList from "./components/MessageList";
 import ThinkingIndicator from "./components/ThinkingIndicator";
@@ -18,7 +20,13 @@ function App() {
           {status === "failed" && <ErrorMessage />}
         </div>
       </main>
-      <MessageInput onSend={send} sending={status === "sending"} />
+      <footer className="w-full mx-auto max-w-content flex flex-col gap-1 py-5">
+        <HintStrip />
+        <div className="flex flex-col gap-3">
+          <MessageInput onSend={send} sending={status === "sending"} />
+          <Disclaimer />
+        </div>
+      </footer>
     </div>
   );
 }

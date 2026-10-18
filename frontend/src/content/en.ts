@@ -16,6 +16,8 @@ I can help you understand the form, explain what each field means, what informat
   title: "ATLAS",
   subtitle: "AI assistant for the German self-employment tax registration form",
   inputPlaceholder: "Enter your question here...",
+  disclaimer:
+    "ATLAS is an AI and may make mistakes. Please verify important information before submitting your tax registration.",
   send: "Send",
   thinking: "Thinking",
   error: {
