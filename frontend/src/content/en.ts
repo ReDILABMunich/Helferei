@@ -13,6 +13,8 @@ I can help you understand the form, explain what each field means, what informat
 **How can I help you?**`,
   hint: "Navigate by section number, German field name, or ask any question. e.g. “Section 7”, “Geburtsdatum”, “what is IBAN?”",
   toggleHint: "Show or hide tips",
+  title: "ATLAS",
+  subtitle: "AI assistant for the German self-employment tax registration form",
   inputPlaceholder: "Enter your question here...",
   send: "Send",
   thinking: "Thinking",
