@@ -1,6 +1,6 @@
 export const en = {
-  welcome: `Welcome! I'm ATLAS, your AI assistant for the German tax registration form
-"Fragebogen zur steuerlichen Erfassung für Einzelunternehmen."
+  welcome: `Welcome! I'm ATLAS, your AI assistant for the German tax registration form\\
+"Fragebogen zur steuerlichen Erfassung für Einzelunternehmen."\\
 I can help you understand the form, explain what each field means, what information you need, and guide you through its 23 sections step by step. You can ask questions in English or German
 
 **For the best experience:**
