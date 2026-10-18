@@ -6,8 +6,8 @@ The chat always starts with a welcome message from Atlas. In the prototype built
 
 Two tickets do not work well with that:
 
-- Ticket 2 (Switch the chat to German): when the user switches language, the welcome message must switch too. An item in the message list stays in the language it was created in.
-- Ticket 4 (Start a new conversation): after a reset, only the welcome message should be left. With the welcome in the list, the reset has to remove everything except the first item.
+- FE-2 (Switch the chat to German): when the user switches language, the welcome message must switch too. An item in the message list stays in the language it was created in.
+- FE-4 (Start a new conversation): after a reset, only the welcome message should be left. With the welcome in the list, the reset has to remove everything except the first item.
 
 ## Decision
 

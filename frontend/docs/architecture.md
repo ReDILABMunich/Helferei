@@ -2,7 +2,7 @@
 
 ## Class diagram
 
-The things the frontend keeps track of, their fields, and how they relate. It covers all eight Phase 4 tickets, not only the P0 ones, so the structure does not have to change when the P1 and P2 tickets are built.
+The things the frontend keeps track of, their fields, and how they relate. It covers all eight Phase 4 tickets (FE-1 to FE-8), not only the P0 ones, so the structure does not have to change when the P1 and P2 tickets are built.
 
 ```mermaid
 classDiagram
@@ -111,4 +111,4 @@ Rules:
 
 dependency-cruiser checks the rules on every `npm run lint`. The rules live in `.dependency-cruiser.cjs`.
 
-One violation already existed when the check was added: `App.tsx` imports `lib/api.ts` directly. It is listed in `.dependency-cruiser-known-violations.json`, so lint stays green, but any new violation fails. Ticket 1 moves the request into a hook and the `api/` folder; after that, the entry is removed from the list.
+`.dependency-cruiser-known-violations.json` lists violations that are accepted for now. It is empty; keep it that way.
