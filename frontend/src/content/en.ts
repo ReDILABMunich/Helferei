@@ -11,6 +11,8 @@ I can help you understand the form, explain what each field means, what informat
 - Your chat history won't be saved.
 
 **How can I help you?**`,
+  hint: "Navigate by section number, German field name, or ask any question. e.g. “Section 7”, “Geburtsdatum”, “what is IBAN?”",
+  toggleHint: "Show or hide tips",
   inputPlaceholder: "Enter your question here...",
   send: "Send",
   thinking: "Thinking",
