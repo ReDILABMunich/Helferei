@@ -9,7 +9,7 @@ type MessageListProps = {
 
 function MessageList({ messages }: MessageListProps) {
   return (
-    <div>
+    <div className="flex flex-col gap-3">
       <BotMessage text={en.welcome} />
       {messages.map((message) =>
         message.role === "bot" ? (

@@ -9,15 +9,17 @@ function App() {
   const { messages, status, send } = useChat();
 
   return (
-    <>
+    <div className="h-full flex flex-col gap-3">
       <AppHeader />
-      <main>
-        <MessageList messages={messages} />
-        {status === "sending" && <ThinkingIndicator />}
-        {status === "failed" && <ErrorMessage />}
-        <MessageInput onSend={send} sending={status === "sending"} />
+      <main className="flex-1 min-h-0 overflow-y-auto">
+        <div className="mx-auto max-w-content flex flex-col gap-3">
+          <MessageList messages={messages} />
+          {status === "sending" && <ThinkingIndicator />}
+          {status === "failed" && <ErrorMessage />}
+        </div>
       </main>
-    </>
+      <MessageInput onSend={send} sending={status === "sending"} />
+    </div>
   );
 }
 
