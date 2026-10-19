@@ -28,6 +28,7 @@ app.add_middleware(
         "https://helferei-ashy.vercel.app",
         "https://helferei-git-frontend-salim-oseis-projects.vercel.app",
     ],
+    allow_origin_regex=r"https://helferei-git-.*-salim-oseis-projects\.vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
 )
