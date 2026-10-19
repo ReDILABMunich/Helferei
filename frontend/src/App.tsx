@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import AppHeader from "./components/AppHeader";
 import Disclaimer from "./components/Disclaimer";
 import ErrorMessage from "./components/ErrorMessage";
@@ -5,26 +6,35 @@ import HintStrip from "./components/HintStrip";
 import MessageInput from "./components/MessageInput";
 import MessageList from "./components/MessageList";
 import ThinkingIndicator from "./components/ThinkingIndicator";
+import { languages } from "./content";
+import { en } from "./content/en";
 import { useChat } from "./hooks/useChat";
+import type { Language } from "./types";
 
 function App() {
-  const { messages, status, send } = useChat();
+  const [lang, setLang] = useState<Language>("en");
+  const content = languages.find((language) => language.code === lang) ?? en;
+  const { messages, status, send } = useChat(lang);
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   return (
     <div className="h-full flex flex-col gap-3">
-      <AppHeader />
+      <AppHeader content={content} onLanguageChange={setLang} />
       <main className="flex-1 min-h-0 overflow-y-auto">
         <div className="mx-auto max-w-content flex flex-col gap-3">
-          <MessageList messages={messages} />
-          {status === "sending" && <ThinkingIndicator />}
-          {status === "failed" && <ErrorMessage />}
+          <MessageList content={content} messages={messages} />
+          {status === "sending" && <ThinkingIndicator content={content} />}
+          {status === "failed" && <ErrorMessage content={content} />}
         </div>
       </main>
       <footer className="w-full mx-auto max-w-content flex flex-col gap-1 py-5">
-        <HintStrip />
+        <HintStrip content={content} />
         <div className="flex flex-col gap-3">
-          <MessageInput onSend={send} sending={status === "sending"} />
-          <Disclaimer />
+          <MessageInput content={content} onSend={send} sending={status === "sending"} />
+          <Disclaimer content={content} />
         </div>
       </footer>
     </div>

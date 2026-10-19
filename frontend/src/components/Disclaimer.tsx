@@ -1,7 +1,11 @@
-import { en } from "../content/en";
+import type { en } from "../content/en";
 
-function Disclaimer() {
-  return <p className="text-center text-footnote text-neutral-700">{en.disclaimer}</p>;
+type DisclaimerProps = {
+  content: typeof en;
+};
+
+function Disclaimer({ content }: DisclaimerProps) {
+  return <p className="text-center text-footnote text-neutral-700">{content.disclaimer}</p>;
 }
 
 export default Disclaimer;

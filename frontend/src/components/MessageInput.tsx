@@ -1,13 +1,14 @@
 import { useState } from "react";
 import type { KeyboardEvent } from "react";
-import { en } from "../content/en";
+import type { en } from "../content/en";
 
 type MessageInputProps = {
+  content: typeof en;
   onSend: (text: string) => void;
   sending: boolean;
 };
 
-function MessageInput({ onSend, sending }: MessageInputProps) {
+function MessageInput({ content, onSend, sending }: MessageInputProps) {
   const [text, setText] = useState("");
 
   function submit() {
@@ -29,11 +30,11 @@ function MessageInput({ onSend, sending }: MessageInputProps) {
         value={text}
         onChange={(event) => setText(event.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={en.inputPlaceholder}
+        placeholder={content.inputPlaceholder}
       />
       <button
         type="button"
-        aria-label={en.send}
+        aria-label={content.send}
         onClick={submit}
         className="flex justify-center items-center w-14 h-12 px-4 py-3 bg-brand-500 rounded-8"
       >

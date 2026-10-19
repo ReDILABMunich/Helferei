@@ -6,7 +6,7 @@ import HintStrip from "./HintStrip";
 
 describe("HintStrip", () => {
   it("is open when the app starts", () => {
-    render(<HintStrip />);
+    render(<HintStrip content={en} />);
 
     expect(screen.getByText(en.hint)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: en.toggleHint })).toHaveAttribute("aria-expanded", "true");
@@ -14,7 +14,7 @@ describe("HintStrip", () => {
 
   it("hides the hint with the toggle and shows it again", async () => {
     const user = userEvent.setup();
-    render(<HintStrip />);
+    render(<HintStrip content={en} />);
     const toggle = screen.getByRole("button", { name: en.toggleHint });
 
     await user.click(toggle);
