@@ -49,7 +49,13 @@ Each ticket goes through Read, Plan, Implement, Verify, on its own branch, and e
 3. **Test first.** Write the test, show that it fails, then write the smallest code that makes it pass.
 4. **Spec before code.** If the code needs to do something the spec does not say, update the spec first.
 5. **Decisions.** Record important decisions in `decisions/NNN-name.md`: context, decision, consequences, when to reconsider.
-6. **Commits.** One decision per commit. The spec, tests and code for that decision go together, and every commit keeps the tests green. Do not commit without approval: list the changed files first and ask.
+6. **Commits.** Commits follow the working steps, in this order:
+   1. **Spec.**
+   2. **Tests.** One commit per test, or one for the whole group. The tests are red in these commits. Never split a test: its arrange, act and assert parts go into the same commit.
+   3. **Code.** The code that makes the tests green. One commit for all of it, or one commit per test it turns green.
+   4. **Docs**, such as a decision record.
+
+   A test you missed later gets its own commit, followed by a commit with its code. Do not commit without approval: list the changed files first and ask.
 
 ## Rules
 
