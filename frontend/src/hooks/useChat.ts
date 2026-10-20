@@ -1,8 +1,8 @@
 import { useCallback, useRef, useState } from "react";
 import { sendChat } from "../api/chat";
-import type { ConversationStatus, Message } from "../types";
+import type { ConversationStatus, Language, Message } from "../types";
 
-export function useChat() {
+export function useChat(lang: Language) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [status, setStatus] = useState<ConversationStatus>("idle");
 
@@ -21,7 +21,7 @@ export function useChat() {
       { id: nextId.current++, role: "user", text, breadcrumb: null },
     ]);
 
-    sendChat({ message: text, session_id: sessionId.current, lang: "en" })
+    sendChat({ message: text, session_id: sessionId.current, lang })
       .then((reply) => {
         sessionId.current = reply.session_id;
         setMessages((previous) => [
@@ -41,7 +41,7 @@ export function useChat() {
       .finally(() => {
         isSending.current = false;
       });
-  }, []);
+  }, [lang]);
 
   return { messages, status, send };
 }

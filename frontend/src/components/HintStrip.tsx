@@ -1,14 +1,18 @@
 import { useState } from "react";
-import { en } from "../content/en";
+import type { en } from "../content/en";
 
-function HintStrip() {
+type HintStripProps = {
+  content: typeof en;
+};
+
+function HintStrip({ content }: HintStripProps) {
   const [open, setOpen] = useState(true);
 
   return (
     <div className="flex flex-col items-start pl-2 max-w-195">
       <button
         type="button"
-        aria-label={en.toggleHint}
+        aria-label={content.toggleHint}
         aria-expanded={open}
         onClick={() => setOpen(!open)}
         className="flex justify-center items-center w-12 pt-2 px-1 pb-1 bg-blue-100 border-3 border-b-0 border-blue-100 rounded-t-8"
@@ -20,7 +24,7 @@ function HintStrip() {
       </button>
       {open && (
         <p className="self-stretch p-2.5 border border-t-4 border-l-4 border-blue-100 rounded-8 rounded-tl-0 text-body-sm text-blue-900">
-          {en.hint}
+          {content.hint}
         </p>
       )}
     </div>

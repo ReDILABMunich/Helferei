@@ -1,7 +1,11 @@
 import logo from "../assets/logo.png";
-import { en } from "../content/en";
+import type { en } from "../content/en";
 
-function ErrorMessage() {
+type ErrorMessageProps = {
+  content: typeof en;
+};
+
+function ErrorMessage({ content }: ErrorMessageProps) {
   return (
     <div className="flex gap-2 py-1 min-w-75 max-w-150 self-start">
       <div className="flex items-end">
@@ -19,8 +23,8 @@ function ErrorMessage() {
             <circle cx="20" cy="27" r="1.5" fill="currentColor" />
           </svg>
           <div>
-            <p>{en.error.title}</p>
-            <p className="whitespace-pre-line">{en.error.body}</p>
+            <p>{content.error.title}</p>
+            <p className="whitespace-pre-line">{content.error.body}</p>
           </div>
         </div>
       </div>

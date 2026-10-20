@@ -1,16 +1,17 @@
-import { en } from "../content/en";
+import type { en } from "../content/en";
 import type { Message } from "../types";
 import BotMessage from "./BotMessage";
 import UserMessage from "./UserMessage";
 
 type MessageListProps = {
+  content: typeof en;
   messages: Message[];
 };
 
-function MessageList({ messages }: MessageListProps) {
+function MessageList({ content, messages }: MessageListProps) {
   return (
     <div className="flex flex-col gap-3">
-      <BotMessage text={en.welcome} />
+      <BotMessage text={content.welcome} />
       {messages.map((message) =>
         message.role === "bot" ? (
           <BotMessage key={message.id} text={message.text} />
