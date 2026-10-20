@@ -42,7 +42,7 @@
   --radius-48: 48px;
   --radius-1000: 1000px;
 
-  --color-brand-50: #fffae8;
+  --color-brand-50: #fefcf3;
   --color-brand-100: #fff1be;
   --color-brand-200: #ffe895;
   --color-brand-300: #ffdf6b;
@@ -52,17 +52,6 @@
   --color-brand-700: #a78300;
   --color-brand-800: #7f6300;
   --color-brand-900: #564300;
-
-  --color-coral-50: #fff1ed;
-  --color-coral-100: #ffd3c6;
-  --color-coral-200: #ffb59f;
-  --color-coral-300: #ff9778;
-  --color-coral-400: #fc7750;
-  --color-coral-500: #fc7750;
-  --color-coral-600: #e56c49;
-  --color-coral-700: #b35439;
-  --color-coral-800: #8b412c;
-  --color-coral-900: #6a3222;
 
   --color-neutral-50: #fafaf9;
   --color-neutral-100: #e2e3e4;
