@@ -155,3 +155,114 @@ describe("useChat", () => {
     });
   });
 });
+
+describe("useChat retry (FE-3)", () => {
+  it("failed -> sending: sends the last question again with the session id, without a new message", async () => {
+    const first = deferred<ChatReply>();
+    const second = deferred<ChatReply>();
+    sendChatMock
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise)
+      .mockReturnValueOnce(deferred<ChatReply>().promise);
+    const { result } = renderHook(() => useChat("en"));
+
+    act(() => result.current.send("First"));
+    await act(async () => first.resolve(reply("abc")));
+    act(() => result.current.send("Second"));
+    await act(async () => second.reject(new Error("502")));
+
+    act(() => result.current.retry());
+
+    expect(result.current.status).toBe("sending");
+    expect(result.current.messages).toHaveLength(3);
+    expect(sendChatMock).toHaveBeenLastCalledWith({
+      message: "Second",
+      session_id: "abc",
+      lang: "en",
+    });
+  });
+
+  it("after a successful retry, the next question uses the session id of the retry's answer", async () => {
+    const first = deferred<ChatReply>();
+    const second = deferred<ChatReply>();
+    sendChatMock
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise)
+      .mockReturnValueOnce(deferred<ChatReply>().promise);
+    const { result } = renderHook(() => useChat("en"));
+
+    act(() => result.current.send("First"));
+    await act(async () => first.reject(new Error("502")));
+    act(() => result.current.retry());
+    await act(async () => second.resolve(reply("abc")));
+
+    expect(result.current.status).toBe("idle");
+
+    act(() => result.current.send("Follow-up"));
+    expect(sendChatMock).toHaveBeenLastCalledWith({
+      message: "Follow-up",
+      session_id: "abc",
+      lang: "en",
+    });
+  });
+
+  it("when the first question fails, the retry is sent without a session id", async () => {
+    const first = deferred<ChatReply>();
+    sendChatMock
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(deferred<ChatReply>().promise);
+    const { result } = renderHook(() => useChat("en"));
+
+    act(() => result.current.send("First"));
+    await act(async () => first.reject(new Error("502")));
+    act(() => result.current.retry());
+
+    expect(sendChatMock).toHaveBeenLastCalledWith({
+      message: "First",
+      session_id: null,
+      lang: "en",
+    });
+  });
+
+  it("a language chosen after the error is used by the retry, and the session is kept", async () => {
+    const first = deferred<ChatReply>();
+    const second = deferred<ChatReply>();
+    sendChatMock
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise)
+      .mockReturnValueOnce(deferred<ChatReply>().promise);
+    const { result, rerender } = renderHook(({ lang }) => useChat(lang), {
+      initialProps: { lang: "en" as Language },
+    });
+
+    act(() => result.current.send("First"));
+    await act(async () => first.resolve(reply("abc")));
+    act(() => result.current.send("Second"));
+    await act(async () => second.reject(new Error("502")));
+    rerender({ lang: "de" });
+    act(() => result.current.retry());
+
+    expect(sendChatMock).toHaveBeenLastCalledWith({
+      message: "Second",
+      session_id: "abc",
+      lang: "de",
+    });
+  });
+
+  it("two quick retries send only one request", async () => {
+    const first = deferred<ChatReply>();
+    sendChatMock
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValue(deferred<ChatReply>().promise);
+    const { result } = renderHook(() => useChat("en"));
+
+    act(() => result.current.send("First"));
+    await act(async () => first.reject(new Error("502")));
+    act(() => {
+      result.current.retry();
+      result.current.retry();
+    });
+
+    expect(sendChatMock).toHaveBeenCalledTimes(2);
+  });
+});
