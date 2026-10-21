@@ -3,9 +3,10 @@ import type { en } from "../content/en";
 
 type ErrorMessageProps = {
   content: typeof en;
+  onRetry: () => void;
 };
 
-function ErrorMessage({ content }: ErrorMessageProps) {
+function ErrorMessage({ content, onRetry }: ErrorMessageProps) {
   return (
     <div className="flex gap-2 py-1 min-w-75 max-w-150 self-start">
       <div className="flex items-end">
@@ -26,6 +27,9 @@ function ErrorMessage({ content }: ErrorMessageProps) {
             <p>{content.error.title}</p>
             <p className="whitespace-pre-line">{content.error.body}</p>
           </div>
+          <button type="button" onClick={onRetry}>
+            {content.error.retry}
+          </button>
         </div>
       </div>
     </div>
