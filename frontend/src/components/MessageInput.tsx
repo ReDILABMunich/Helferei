@@ -36,6 +36,7 @@ function MessageInput({ content, onSend, sending }: MessageInputProps) {
         placeholder={content.inputPlaceholder}
         aria-invalid={tooLong}
       />
+      {tooLong && <p>{content.tooLong}</p>}
       <span>{`${text.length || ""}/${MAX_LENGTH}`}</span>
       <button
         type="button"
