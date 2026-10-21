@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { KeyboardEvent } from "react";
 import type { en } from "../content/en";
 
+const MAX_LENGTH = 800;
+
 type MessageInputProps = {
   content: typeof en;
   onSend: (text: string) => void;
@@ -32,6 +34,7 @@ function MessageInput({ content, onSend, sending }: MessageInputProps) {
         onKeyDown={handleKeyDown}
         placeholder={content.inputPlaceholder}
       />
+      <span>{`${text.length}/${MAX_LENGTH}`}</span>
       <button
         type="button"
         aria-label={content.send}
