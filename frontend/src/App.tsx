@@ -14,7 +14,7 @@ import type { Language } from "./types";
 function App() {
   const [lang, setLang] = useState<Language>("en");
   const content = languages.find((language) => language.code === lang) ?? en;
-  const { messages, status, send } = useChat(lang);
+  const { messages, status, send, retry } = useChat(lang);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -27,7 +27,7 @@ function App() {
         <div className="mx-auto max-w-content flex flex-col gap-3">
           <MessageList content={content} messages={messages} />
           {status === "sending" && <ThinkingIndicator content={content} />}
-          {status === "failed" && <ErrorMessage content={content} />}
+          {status === "failed" && <ErrorMessage content={content} onRetry={retry} />}
         </div>
       </main>
       <footer className="w-full mx-auto max-w-content flex flex-col gap-1 py-5">

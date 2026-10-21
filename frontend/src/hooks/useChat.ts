@@ -10,16 +10,12 @@ export function useChat(lang: Language) {
   const isSending = useRef(false);
   const sessionId = useRef<string | null>(null);
   const nextId = useRef(0);
+  const lastQuestion = useRef("");
 
-  const send = useCallback((text: string): void => {
-    if (isSending.current || text.trim() === "") return;
-
+  // Sends a question that is already in the message list.
+  const request = useCallback((text: string): void => {
     isSending.current = true;
     setStatus("sending");
-    setMessages((previous) => [
-      ...previous,
-      { id: nextId.current++, role: "user", text, breadcrumb: null },
-    ]);
 
     sendChat({ message: text, session_id: sessionId.current, lang })
       .then((reply) => {
@@ -43,5 +39,21 @@ export function useChat(lang: Language) {
       });
   }, [lang]);
 
-  return { messages, status, send };
+  const send = useCallback((text: string): void => {
+    if (isSending.current || text.trim() === "") return;
+
+    lastQuestion.current = text;
+    setMessages((previous) => [
+      ...previous,
+      { id: nextId.current++, role: "user", text, breadcrumb: null },
+    ]);
+    request(text);
+  }, [request]);
+
+  const retry = useCallback((): void => {
+    if (isSending.current) return;
+    request(lastQuestion.current);
+  }, [request]);
+
+  return { messages, status, send, retry };
 }
