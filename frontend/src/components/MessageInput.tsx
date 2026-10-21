@@ -12,6 +12,7 @@ type MessageInputProps = {
 
 function MessageInput({ content, onSend, sending }: MessageInputProps) {
   const [text, setText] = useState("");
+  const tooLong = text.length > MAX_LENGTH;
 
   function submit() {
     if (sending || text.trim() === "") return;
@@ -33,12 +34,14 @@ function MessageInput({ content, onSend, sending }: MessageInputProps) {
         onChange={(event) => setText(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={content.inputPlaceholder}
+        aria-invalid={tooLong}
       />
       <span>{`${text.length || ""}/${MAX_LENGTH}`}</span>
       <button
         type="button"
         aria-label={content.send}
         onClick={submit}
+        disabled={tooLong}
         className="flex justify-center items-center w-14 h-12 px-4 py-3 bg-brand-500 rounded-8"
       >
         {/* Placeholder until the icon library (FE-8). */}
