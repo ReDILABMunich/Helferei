@@ -15,7 +15,7 @@ function MessageInput({ content, onSend, sending }: MessageInputProps) {
   const tooLong = text.length > MAX_LENGTH;
 
   function submit() {
-    if (sending || text.trim() === "") return;
+    if (sending || tooLong || text.trim() === "") return;
     onSend(text);
     setText("");
   }
