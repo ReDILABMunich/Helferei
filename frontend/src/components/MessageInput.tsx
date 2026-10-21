@@ -34,7 +34,7 @@ function MessageInput({ content, onSend, sending }: MessageInputProps) {
         onKeyDown={handleKeyDown}
         placeholder={content.inputPlaceholder}
       />
-      <span>{`${text.length}/${MAX_LENGTH}`}</span>
+      <span>{`${text.length || ""}/${MAX_LENGTH}`}</span>
       <button
         type="button"
         aria-label={content.send}
