@@ -96,6 +96,11 @@ def _strip_nav_tip(answer: str) -> str:
 def root():
     return {"message": "Hello from Helferei Backend, test rendering a branch"}
 
+#Added to support cronjob
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
