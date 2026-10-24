@@ -15,7 +15,8 @@ function NewChatDialog({ content, onConfirm, onCancel }: NewChatDialogProps) {
       <div role="dialog" aria-modal="true" aria-labelledby={titleId}>
         <h2 id={titleId}>{content.newChat.title}</h2>
         <p>{content.newChat.body}</p>
-        <button type="button" onClick={onCancel}>
+        {/* Focus starts on the least destructive button, so Enter does not clear the chat. */}
+        <button type="button" onClick={onCancel} autoFocus>
           {content.newChat.cancel}
         </button>
         <button type="button" onClick={onConfirm}>
