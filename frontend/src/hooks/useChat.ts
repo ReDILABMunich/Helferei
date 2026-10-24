@@ -11,14 +11,18 @@ export function useChat(lang: Language) {
   const sessionId = useRef<string | null>(null);
   const nextId = useRef(0);
   const lastQuestion = useRef("");
+  // Counts the resets, so a reply from an earlier conversation can be ignored.
+  const conversation = useRef(0);
 
   // Sends a question that is already in the message list.
   const request = useCallback((text: string): void => {
+    const current = conversation.current;
     isSending.current = true;
     setStatus("sending");
 
     sendChat({ message: text, session_id: sessionId.current, lang })
       .then((reply) => {
+        if (current !== conversation.current) return;
         sessionId.current = reply.session_id;
         setMessages((previous) => [
           ...previous,
@@ -35,6 +39,7 @@ export function useChat(lang: Language) {
         setStatus("failed");
       })
       .finally(() => {
+        if (current !== conversation.current) return;
         isSending.current = false;
       });
   }, [lang]);
@@ -59,6 +64,8 @@ export function useChat(lang: Language) {
     setMessages([]);
     setStatus("idle");
     sessionId.current = null;
+    conversation.current++;
+    isSending.current = false;
   }, []);
 
   return { messages, status, send, retry, reset };
