@@ -16,7 +16,7 @@ Ich helfe Ihnen dabei, das Formular zu verstehen, erkläre Ihnen die Bedeutung d
 - Ihr Chatverlauf wird nicht gespeichert.
 
 **Wie kann ich Ihnen helfen?**`,
-  hint: "Navigieren Sie nach Abschnittsnummer oder deutschem Feldnamen, oder stellen Sie eine beliebige Frage. z. B. „Abschnitt 7“, „Geburtsdatum“, „Was ist eine IBAN?“",
+  hint: "Navigieren Sie über die Abschnittsnummer, den deutschen Feldnamen oder stellen Sie eine beliebige Frage. z. B. “7“, “Geburtsdatum“ oder “Was ist eine IBAN?“",
   toggleHint: "Tipps ein- oder ausblenden",
   title: "ATLAS",
   subtitle: "KI-Assistent für den Fragebogen zur steuerlichen Erfassung für Einzelunternehmen",
