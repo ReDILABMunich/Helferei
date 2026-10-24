@@ -36,6 +36,7 @@ export function useChat(lang: Language) {
         setStatus("idle");
       })
       .catch(() => {
+        if (current !== conversation.current) return;
         setStatus("failed");
       })
       .finally(() => {
