@@ -31,4 +31,12 @@ Ich helfe Ihnen dabei, das Formular zu verstehen, erkläre Ihnen die Bedeutung d
     body: "Ich konnte Ihre Anfrage nicht verarbeiten.\nBitte versuchen Sie es erneut.",
     retry: "Erneut versuchen",
   },
+  newChat: {
+    button: "Neuer Chat",
+    title: "Möchten Sie wirklich eine neue Unterhaltung beginnen?",
+    body: "Dadurch wird Ihre aktuelle Unterhaltung gelöscht.",
+    cancel: "Abbrechen",
+    confirm: "Ja, zurücksetzen",
+    close: "Schließen",
+  },
 };

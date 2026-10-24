@@ -6,9 +6,10 @@ import LanguageSelect from "./LanguageSelect";
 type AppHeaderProps = {
   content: typeof en;
   onLanguageChange: (code: Language) => void;
+  onNewChat: () => void;
 };
 
-function AppHeader({ content, onLanguageChange }: AppHeaderProps) {
+function AppHeader({ content, onLanguageChange, onNewChat }: AppHeaderProps) {
   return (
     <header className="bg-white border-b-2 border-neutral-200 py-5">
       <div className="mx-auto max-w-content flex justify-between items-center">
@@ -21,6 +22,13 @@ function AppHeader({ content, onLanguageChange }: AppHeaderProps) {
         </div>
         <div className="flex justify-end items-center gap-5">
           <LanguageSelect content={content} onChange={onLanguageChange} />
+          <button type="button" aria-label={content.newChat.button} onClick={onNewChat}>
+            {/* Placeholder until the icon library (FE-8). */}
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="w-6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <rect x="3" y="3" width="18" height="18" rx="3" />
+              <path d="M12 8 V16 M8 12 H16" />
+            </svg>
+          </button>
         </div>
       </div>
     </header>
