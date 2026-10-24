@@ -57,6 +57,7 @@ export function useChat(lang: Language) {
 
   const reset = useCallback((): void => {
     setMessages([]);
+    setStatus("idle");
     sessionId.current = null;
   }, []);
 
