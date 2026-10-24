@@ -55,5 +55,10 @@ export function useChat(lang: Language) {
     request(lastQuestion.current);
   }, [request]);
 
-  return { messages, status, send, retry };
+  const reset = useCallback((): void => {
+    setMessages([]);
+    sessionId.current = null;
+  }, []);
+
+  return { messages, status, send, retry, reset };
 }
