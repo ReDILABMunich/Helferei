@@ -17,10 +17,13 @@ function App() {
   const content = languages.find((language) => language.code === lang) ?? en;
   const { messages, status, send, retry, reset } = useChat(lang);
   const [isNewChatDialogOpen, setIsNewChatDialogOpen] = useState(false);
+  // A new key makes React build a new input, so its text is cleared.
+  const [inputKey, setInputKey] = useState(0);
 
   function startNewChat() {
     setIsNewChatDialogOpen(false);
     reset();
+    setInputKey((key) => key + 1);
   }
 
   useEffect(() => {
@@ -40,7 +43,7 @@ function App() {
       <footer className="w-full mx-auto max-w-content flex flex-col gap-1 py-5">
         <HintStrip content={content} />
         <div className="flex flex-col gap-3">
-          <MessageInput content={content} onSend={send} sending={status === "sending"} />
+          <MessageInput key={inputKey} content={content} onSend={send} sending={status === "sending"} />
           <Disclaimer content={content} />
         </div>
       </footer>
