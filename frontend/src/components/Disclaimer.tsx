@@ -5,7 +5,7 @@ type DisclaimerProps = {
 };
 
 function Disclaimer({ content }: DisclaimerProps) {
-  return <p className="text-center text-footnote text-neutral-700">{content.disclaimer}</p>;
+  return <p className="text-center text-caption text-neutral-700">{content.disclaimer}</p>;
 }
 
 export default Disclaimer;
