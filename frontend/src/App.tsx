@@ -31,20 +31,22 @@ function App() {
   }, [lang]);
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="h-full flex flex-col gap-2 tablet:gap-3">
       <AppHeader content={content} onLanguageChange={setLang} onNewChat={() => setIsNewChatDialogOpen(true)} />
-      <main className="flex-1 min-h-0 overflow-y-auto">
-        <div className="mx-auto max-w-content flex flex-col gap-3">
+      <main className="flex-1 min-h-0 overflow-y-auto px-5 desktop:px-8">
+        <div className="mx-auto max-w-content flex flex-col gap-2 tablet:gap-3">
           <MessageList content={content} messages={messages} />
           {status === "sending" && <ThinkingIndicator content={content} />}
           {status === "failed" && <ErrorMessage content={content} onRetry={retry} />}
         </div>
       </main>
-      <footer className="w-full mx-auto max-w-content flex flex-col gap-1 py-5">
-        <HintStrip content={content} />
-        <div className="flex flex-col gap-3">
-          <MessageInput key={inputKey} content={content} onSend={send} sending={status === "sending"} />
-          <Disclaimer content={content} />
+      <footer className="px-5 desktop:px-8 py-5">
+        <div className="mx-auto max-w-content flex flex-col gap-1">
+          <HintStrip content={content} />
+          <div className="flex flex-col gap-3">
+            <MessageInput key={inputKey} content={content} onSend={send} sending={status === "sending"} />
+            <Disclaimer content={content} />
+          </div>
         </div>
       </footer>
       {isNewChatDialogOpen && (

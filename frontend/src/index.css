@@ -30,6 +30,10 @@
   --shadow-small: 0 4px 8px 0 rgba(0, 0, 0, 0.25);
   --shadow-x-small: 0 1px 4px 0 rgba(0, 0, 0, 0.25);
 
+  /* Figma frame widths: mobile is the default, below tablet. */
+  --breakpoint-tablet: 744px;
+  --breakpoint-desktop: 1024px;
+
   --container-content: 992px;
   --container-bubble: 900px;
 

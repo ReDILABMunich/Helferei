@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { KeyboardEvent } from "react";
+import logo from "../assets/logo.png";
 import { languages } from "../content";
 import type { en } from "../content/en";
 import type { Language } from "../types";
@@ -28,33 +29,63 @@ function MobileMenu({ content, onLanguageChange, onNewChat }: MobileMenuProps) {
   }
 
   return (
-    <div onKeyDown={handleKeyDown}>
-      <button type="button" aria-label={content.menu.open} aria-expanded={open} onClick={() => setOpen(true)}>
+    <div onKeyDown={handleKeyDown} className="tablet:hidden">
+      <button type="button" aria-label={content.menu.open} aria-expanded={open} onClick={() => setOpen(true)} className="flex text-black">
         {/* Placeholder until the icon library (FE-8). */}
         <svg viewBox="0 0 48 34" aria-hidden="true" className="w-12">
           <path d="M2 3 H46 M2 17 H46 M2 31 H46" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
         </svg>
       </button>
       {open && (
-        <div>
-          <button type="button" aria-label={content.menu.close} onClick={() => setOpen(false)} />
-          <p>{content.subtitle}</p>
-          <ul>
-            {languages.map((language) => (
-              <li key={language.code}>
-                <button
-                  type="button"
-                  aria-pressed={language.code === content.code}
-                  onClick={() => chooseLanguage(language.code)}
-                >
-                  {language.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <button type="button" onClick={startNewChat}>
-            {content.newChat.button}
-          </button>
+        <div className="fixed inset-0 z-10 flex flex-col gap-8 py-5 bg-white overflow-y-auto">
+          <div className="flex flex-col gap-4 py-2">
+            <div className="flex justify-between items-center px-5">
+              <div className="flex items-center gap-4">
+                <img src={logo} alt="" className="w-12" />
+                <span className="font-display font-bold text-h2 text-black">{content.title}</span>
+              </div>
+              <button
+                type="button"
+                aria-label={content.menu.close}
+                onClick={() => setOpen(false)}
+                className="flex justify-center items-center size-10 p-2.5 text-black"
+              >
+                {/* Placeholder until the icon library (FE-8). */}
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="w-6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                  <path d="M3 3 L21 21 M21 3 L3 21" />
+                </svg>
+              </button>
+            </div>
+            <p className="pl-5 pr-15 font-bold text-body text-neutral-700">{content.subtitle}</p>
+            <hr className="border-t-2 border-neutral-200" />
+          </div>
+          <div className="flex flex-col gap-10 px-5 py-4">
+            <ul className="flex flex-col gap-5">
+              {languages.map((language) => (
+                <li key={language.code}>
+                  <button
+                    type="button"
+                    aria-pressed={language.code === content.code}
+                    onClick={() => chooseLanguage(language.code)}
+                    className="flex justify-between items-center w-full p-2 rounded-8 font-bold text-h5 text-neutral-900"
+                  >
+                    {language.name}
+                    {language.code === content.code && (
+                      <svg viewBox="0 0 30 21" aria-hidden="true" className="w-7.5">
+                        <path d="M1.5 11 L10 19.5 L28.5 1.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-col gap-6">
+              <hr className="border-t-2 border-neutral-200" />
+              <button type="button" onClick={startNewChat} className="flex w-full p-2 rounded-8 font-bold text-h5 text-neutral-900">
+                {content.newChat.button}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
