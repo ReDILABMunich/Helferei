@@ -9,8 +9,13 @@ type MobileMenuProps = {
   onNewChat: () => void;
 };
 
-function MobileMenu({ content }: MobileMenuProps) {
+function MobileMenu({ content, onLanguageChange }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
+
+  function chooseLanguage(code: Language) {
+    onLanguageChange(code);
+    setOpen(false);
+  }
 
   return (
     <div>
@@ -27,7 +32,11 @@ function MobileMenu({ content }: MobileMenuProps) {
           <ul>
             {languages.map((language) => (
               <li key={language.code}>
-                <button type="button" aria-pressed={language.code === content.code}>
+                <button
+                  type="button"
+                  aria-pressed={language.code === content.code}
+                  onClick={() => chooseLanguage(language.code)}
+                >
                   {language.name}
                 </button>
               </li>
