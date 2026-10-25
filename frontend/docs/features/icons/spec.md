@@ -34,7 +34,7 @@ New file `src/components/icons.tsx`. It holds one small component per library ic
 
 The `caution` icon has two sizes in the library (28 and 40) with the same shape, so there is one component and the width comes from `className`.
 
-The SVGs are written as React components by hand instead of loading `.svg` files with a build plugin. See the decision record added in this ticket.
+The SVGs are written as React components by hand instead of loading `.svg` files with a build plugin. See [decision 004](../../../decisions/004-icons-are-inline-components.md).
 
 ## Behaviour
 
