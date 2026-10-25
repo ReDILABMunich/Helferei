@@ -88,4 +88,9 @@ Measured in the Figma file, for each of the four frames:
 | New chat dialog | Width, padding |
 | Mobile menu (only in the mobile frame "Menu Open") | Padding, space between items, fonts, separator lines, tick size |
 
+Changes the designer made in the Figma file after FE-9, for every size:
+
+- Disclaimer: font size 12px instead of 10px.
+- Hint strip: left and right padding 4px instead of 8px, both around the strip and inside the hint box. The hint box keeps 8px at the top and bottom. The strip is up to 984px wide, almost as wide as the input.
+
 In the mobile frame the hint strip is wider than the screen. It is made to fit the screen width, because the page must not scroll sideways.
