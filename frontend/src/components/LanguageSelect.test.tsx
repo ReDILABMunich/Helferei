@@ -5,6 +5,10 @@ import { de } from "../content/de";
 import { en } from "../content/en";
 import LanguageSelect from "./LanguageSelect";
 
+// The library name of each icon inside an element, in order.
+const iconsIn = (element: HTMLElement) =>
+  [...element.querySelectorAll("svg")].map((svg) => svg.getAttribute("data-icon"));
+
 describe("LanguageSelect", () => {
   it("opens and closes the list with the button and tells screen readers", async () => {
     const user = userEvent.setup();
@@ -56,5 +60,15 @@ describe("LanguageSelect", () => {
 
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("shows the library tick next to the current language only", async () => {
+    const user = userEvent.setup();
+    render(<LanguageSelect content={en} onChange={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /Language/ }));
+
+    expect(iconsIn(screen.getByRole("button", { name: en.name }))).toEqual(["tick"]);
+    expect(iconsIn(screen.getByRole("button", { name: de.name }))).toEqual([]);
   });
 });

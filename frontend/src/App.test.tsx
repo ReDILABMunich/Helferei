@@ -299,3 +299,52 @@ describe("FE-4 acceptance criteria", () => {
     expect(pending[1].body.session_id).toBeNull();
   });
 });
+
+// The library name of each icon inside an element, in order.
+const iconsIn = (element: HTMLElement) =>
+  [...element.querySelectorAll("svg")].map((svg) => svg.getAttribute("data-icon"));
+
+describe("FE-8 acceptance criteria", () => {
+  it("normal path: every icon is the library icon", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    expect(iconsIn(screen.getByRole("button", { name: en.newChat.button }))).toEqual(["doc-add"]);
+    expect(iconsIn(screen.getByRole("button", { name: en.menu.open }))).toEqual(["menu"]);
+    expect(iconsIn(screen.getByRole("button", { name: /Language/ }))).toEqual(["globe", "arrow-single-down"]);
+    expect(iconsIn(screen.getByRole("button", { name: en.toggleHint }))).toEqual(["arrow-single-down"]);
+    expect(iconsIn(screen.getByRole("button", { name: en.send }))).toEqual(["navigation"]);
+
+    await user.type(screen.getByRole("textbox"), "First question{Enter}");
+    answer(0, { detail: "AI request failed" }, 502);
+    expect(iconsIn(await screen.findByRole("alert"))).toEqual(["caution", "refresh"]);
+
+    await user.click(screen.getByRole("button", { name: en.newChat.button }));
+    expect(iconsIn(screen.getByRole("dialog", { name: en.newChat.title }))).toEqual(["close", "info"]);
+  });
+
+  it("something goes wrong: in German, every button that shows only an icon has its German label", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: /Language/ }));
+    await user.click(screen.getByRole("button", { name: de.name }));
+
+    // No visible text, one library icon, and the German label as its name.
+    const expectIconOnly = (button: HTMLElement) => {
+      expect(button.textContent).toBe("");
+      expect(iconsIn(button)).toHaveLength(1);
+      expect(iconsIn(button)[0]).not.toBeNull();
+    };
+    expectIconOnly(screen.getByRole("button", { name: de.newChat.button }));
+    expectIconOnly(screen.getByRole("button", { name: de.toggleHint }));
+    expectIconOnly(screen.getByRole("button", { name: de.send }));
+
+    await user.click(screen.getByRole("button", { name: de.menu.open }));
+    expectIconOnly(screen.getByRole("button", { name: de.menu.open }));
+    expectIconOnly(screen.getByRole("button", { name: de.menu.close }));
+    await user.click(screen.getByRole("button", { name: de.menu.close }));
+
+    await user.click(screen.getByRole("button", { name: de.newChat.button }));
+    expectIconOnly(screen.getByRole("button", { name: de.newChat.close }));
+  });
+});

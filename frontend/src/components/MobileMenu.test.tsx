@@ -5,6 +5,10 @@ import { de } from "../content/de";
 import { en } from "../content/en";
 import MobileMenu from "./MobileMenu";
 
+// The library name of each icon inside an element, in order.
+const iconsIn = (element: HTMLElement) =>
+  [...element.querySelectorAll("svg")].map((svg) => svg.getAttribute("data-icon"));
+
 describe("MobileMenu", () => {
   it("the menu button opens the menu and tells screen readers", async () => {
     const user = userEvent.setup();
@@ -65,5 +69,18 @@ describe("MobileMenu", () => {
 
     expect(onLanguageChange).not.toHaveBeenCalled();
     expect(onNewChat).not.toHaveBeenCalled();
+  });
+
+  it("shows the menu, close and tick icons from the library", async () => {
+    const user = userEvent.setup();
+    render(<MobileMenu content={en} onLanguageChange={vi.fn()} onNewChat={vi.fn()} />);
+    const menuButton = screen.getByRole("button", { name: "Open menu" });
+
+    expect(iconsIn(menuButton)).toEqual(["menu"]);
+
+    await user.click(menuButton);
+    expect(iconsIn(screen.getByRole("button", { name: "Close menu" }))).toEqual(["close"]);
+    expect(iconsIn(screen.getByRole("button", { name: en.name }))).toEqual(["tick"]);
+    expect(iconsIn(screen.getByRole("button", { name: de.name }))).toEqual([]);
   });
 });
