@@ -4,6 +4,7 @@ import logo from "../assets/logo.png";
 import { languages } from "../content";
 import type { en } from "../content/en";
 import type { Language } from "../types";
+import { CloseIcon, MenuIcon, TickIcon } from "./icons";
 
 type MobileMenuProps = {
   content: typeof en;
@@ -31,10 +32,7 @@ function MobileMenu({ content, onLanguageChange, onNewChat }: MobileMenuProps) {
   return (
     <div onKeyDown={handleKeyDown} className="tablet:hidden">
       <button type="button" aria-label={content.menu.open} aria-expanded={open} onClick={() => setOpen(true)} className="flex text-black">
-        {/* Placeholder until the icon library (FE-8). */}
-        <svg viewBox="0 0 48 34" aria-hidden="true" className="w-12">
-          <path d="M2 3 H46 M2 17 H46 M2 31 H46" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        </svg>
+        <MenuIcon className="w-12" />
       </button>
       {open && (
         <div className="fixed inset-0 z-10 flex flex-col gap-8 py-5 bg-white overflow-y-auto">
@@ -50,10 +48,7 @@ function MobileMenu({ content, onLanguageChange, onNewChat }: MobileMenuProps) {
                 onClick={() => setOpen(false)}
                 className="flex justify-center items-center size-10 p-2.5 text-black"
               >
-                {/* Placeholder until the icon library (FE-8). */}
-                <svg viewBox="0 0 24 24" aria-hidden="true" className="w-6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-                  <path d="M3 3 L21 21 M21 3 L3 21" />
-                </svg>
+                <CloseIcon className="w-6" />
               </button>
             </div>
             <p className="pl-5 pr-15 font-bold text-body text-neutral-700">{content.subtitle}</p>
@@ -70,11 +65,7 @@ function MobileMenu({ content, onLanguageChange, onNewChat }: MobileMenuProps) {
                     className="flex justify-between items-center w-full p-2 rounded-8 font-bold text-h5 text-neutral-900"
                   >
                     {language.name}
-                    {language.code === content.code && (
-                      <svg viewBox="0 0 30 21" aria-hidden="true" className="w-7.5">
-                        <path d="M1.5 11 L10 19.5 L28.5 1.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
+                    {language.code === content.code && <TickIcon className="w-7.5" />}
                   </button>
                 </li>
               ))}
