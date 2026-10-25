@@ -9,11 +9,16 @@ type MobileMenuProps = {
   onNewChat: () => void;
 };
 
-function MobileMenu({ content, onLanguageChange }: MobileMenuProps) {
+function MobileMenu({ content, onLanguageChange, onNewChat }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
 
   function chooseLanguage(code: Language) {
     onLanguageChange(code);
+    setOpen(false);
+  }
+
+  function startNewChat() {
+    onNewChat();
     setOpen(false);
   }
 
@@ -42,7 +47,9 @@ function MobileMenu({ content, onLanguageChange }: MobileMenuProps) {
               </li>
             ))}
           </ul>
-          <button type="button">{content.newChat.button}</button>
+          <button type="button" onClick={startNewChat}>
+            {content.newChat.button}
+          </button>
         </div>
       )}
     </div>
