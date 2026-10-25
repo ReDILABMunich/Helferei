@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { KeyboardEvent } from "react";
 import { languages } from "../content";
 import type { en } from "../content/en";
 import type { Language } from "../types";
@@ -22,8 +23,12 @@ function MobileMenu({ content, onLanguageChange, onNewChat }: MobileMenuProps) {
     setOpen(false);
   }
 
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") setOpen(false);
+  }
+
   return (
-    <div>
+    <div onKeyDown={handleKeyDown}>
       <button type="button" aria-label={content.menu.open} aria-expanded={open} onClick={() => setOpen(true)}>
         {/* Placeholder until the icon library (FE-8). */}
         <svg viewBox="0 0 48 34" aria-hidden="true" className="w-12">
@@ -32,7 +37,7 @@ function MobileMenu({ content, onLanguageChange, onNewChat }: MobileMenuProps) {
       </button>
       {open && (
         <div>
-          <button type="button" aria-label={content.menu.close} />
+          <button type="button" aria-label={content.menu.close} onClick={() => setOpen(false)} />
           <p>{content.subtitle}</p>
           <ul>
             {languages.map((language) => (
