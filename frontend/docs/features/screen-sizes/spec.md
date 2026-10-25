@@ -4,9 +4,11 @@
 
 The Figma design has five screen sizes: mobile, tablet, small desktop, default desktop and very wide desktop. FE-9 matched the default desktop. This ticket makes the layout match the Figma design on the other four sizes. The smallest size is 390px wide.
 
+On mobile the header has no room for the language dropdown and the "New chat" button, so the Figma design puts them in a menu that opens over the whole screen.
+
 ## What it does not touch
 
-- The chat behaviour. No change to `useChat`, `api/` or what the components do.
+- The chat behaviour. No change to `useChat` or `api/`.
 - The default desktop size (FE-9). It must look the same as before.
 - The icons from the icon library (FE-8).
 - The breadcrumb line (FE-5).
@@ -16,7 +18,10 @@ The Figma design has five screen sizes: mobile, tablet, small desktop, default d
 
 - `src/index.css`: the Figma frame widths become the Tailwind breakpoints, in the `@theme` block, next to the other tokens.
 - Components get responsive Tailwind classes (for example `md:px-8`). Their props do not change.
-- No new components.
+- New component `MobileMenu`, shown in the header on mobile only. It keeps its own open or closed state.
+  - In: `content`, `onLanguageChange(code)`, `onNewChat()`. The same callbacks `AppHeader` already gets.
+  - Out: nothing; it calls the callbacks.
+- New interface text in `content/`: the labels of the menu button and the close button.
 
 ## Behaviour
 
@@ -25,6 +30,15 @@ The Figma design has five screen sizes: mobile, tablet, small desktop, default d
 - The page never scrolls sideways, from 390px up.
 - The header and the input stay in place; only the message list scrolls. (Already true from FE-9; it must stay true on every size.)
 - A long German word or a URL wraps inside the bubble. (Already true from FE-9 for both bubbles; it must stay true on every size.)
+
+**Mobile menu**
+
+| From | Event | To | What happens |
+|---|---|---|---|
+| Closed | Click the menu button | Open | The menu covers the screen: logo, title, close button, subtitle, the languages (the current one has a tick), a separator, "New chat". The menu button tells screen readers the menu is open. |
+| Open | Click a language | Closed | The app switches to that language. |
+| Open | Click "New chat" | Closed | The "New chat" dialog from FE-4 opens. |
+| Open | Click the close button or press Escape | Closed | Nothing else changes. |
 
 ## Preconditions / Postconditions
 
@@ -37,7 +51,7 @@ The Figma design has five screen sizes: mobile, tablet, small desktop, default d
 | Problem | What happens |
 |---|---|
 | A width between two Figma frames | The layout of the smaller frame is used, stretched to fit. |
-| The header on mobile: logo, title, subtitle, language dropdown and "New chat" button | Arranged as in the mobile frame; nothing is cut off or pushes the page wider. |
+| The window gets wider than mobile while the menu is open | The menu is hidden and the desktop header shows the dropdown and the button. |
 | The new chat dialog on mobile | Fits inside the screen width. |
 | The phone keyboard opens | The input stays visible above it. |
 
@@ -55,7 +69,7 @@ The Figma design has five screen sizes: mobile, tablet, small desktop, default d
 - **When** an answer contains a very long German word and a long URL
 - **Then** both wrap inside the bubble, and the page has no horizontal scroll
 
-These checks are done by eye in the browser, side by side with the Figma file, at each frame width. Layout cannot be measured in the test environment (jsdom), so there are no new automated tests; the existing tests make sure the behaviour did not change. The horizontal scroll check is also done in the browser: at 390px, `document.documentElement.scrollWidth` equals the window width.
+These checks are done by eye in the browser, side by side with the Figma file, at each frame width. Layout cannot be measured in the test environment (jsdom), so these two checks have no automated tests; the existing tests make sure the behaviour did not change. Each row of the mobile menu table gets its own test. The horizontal scroll check is also done in the browser: at 390px, `document.documentElement.scrollWidth` equals the window width.
 
 ## Design
 
@@ -72,3 +86,6 @@ Measured in the Figma file, for each of the four frames:
 | Input | Height, padding, send button size |
 | Disclaimer | Font size |
 | New chat dialog | Width, padding |
+| Mobile menu (only in the mobile frame "Menu Open") | Padding, space between items, fonts, separator lines, tick size |
+
+In the mobile frame the hint strip is wider than the screen. It is made to fit the screen width, because the page must not scroll sideways.
