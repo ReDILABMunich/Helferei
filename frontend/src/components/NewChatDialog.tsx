@@ -58,14 +58,14 @@ function NewChatDialog({ content, onConfirm, onCancel }: NewChatDialogProps) {
             type="button"
             onClick={onCancel}
             autoFocus
-            className="flex justify-center items-center w-28 h-12.5 px-4 py-2 bg-white border border-neutral-500 shadow-x-small rounded-8 text-h5 text-black hover:border-orange-500 active:border-neutral-500"
+            className="flex justify-center items-center h-12.5 px-4 py-2 bg-white border border-neutral-500 shadow-x-small rounded-8 text-h5 text-black hover:border-orange-500 active:border-neutral-500"
           >
             {content.newChat.cancel}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="flex justify-center items-center w-30 h-12.5 px-4 py-3 bg-orange-400 shadow-x-small rounded-8 font-bold text-h5 text-white hover:bg-orange-500 active:bg-orange-400"
+            className="flex justify-center items-center h-12.5 px-4 py-3 bg-orange-400 shadow-x-small rounded-8 font-bold text-h5 text-white hover:bg-orange-500 active:bg-orange-400"
           >
             {content.newChat.confirm}
           </button>

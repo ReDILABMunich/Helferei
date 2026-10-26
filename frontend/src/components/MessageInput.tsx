@@ -55,7 +55,7 @@ function MessageInput({ content, onSend, sending }: MessageInputProps) {
         aria-label={content.send}
         onClick={submit}
         disabled={tooLong}
-        className="flex justify-center items-center w-14 h-12 px-4 py-3 bg-brand-500 rounded-8 disabled:bg-neutral-100 disabled:text-neutral-300"
+        className="flex justify-center items-center w-14 h-12 px-4 py-3 bg-brand-500 rounded-8 enabled:hover:bg-brand-400 enabled:active:bg-brand-500 disabled:bg-neutral-100 disabled:text-neutral-300"
       >
         <NavigationIcon className="w-6" />
       </button>
