@@ -26,6 +26,7 @@ I can help you understand the form, explain what each field means, what informat
     "ATLAS is an AI and may make mistakes. Please verify important information before submitting your tax registration.",
   send: "Send",
   tooLong: "Your message is too long. Please keep it under 800 characters",
+  empty: "Please type a question before sending",
   thinking: "Thinking",
   error: {
     title: "Something went wrong.",
