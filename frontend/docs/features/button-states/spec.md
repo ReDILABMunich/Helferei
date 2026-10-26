@@ -11,7 +11,7 @@ Makes the buttons follow the Figma "Button" component:
 
 ## What it does not touch
 
-Behaviour, focus styles, the "Link" button type, text colours, the icons (FE-8).
+Behaviour, focus styles, text colours, the icons (FE-8). The "Link" button type comes with the breadcrumb (FE-5, FE-15).
 
 ## Interface
 
