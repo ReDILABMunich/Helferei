@@ -373,3 +373,76 @@ describe("FE-8 acceptance criteria", () => {
     expectIconOnly(screen.getByRole("button", { name: de.newChat.close }));
   });
 });
+
+// The breadcrumb bars on the screen, and the segments of one bar in order.
+const breadcrumbBars = () => screen.queryAllByTestId("breadcrumb");
+const segmentsIn = (bar: HTMLElement) =>
+  within(bar).getAllByRole("listitem").map((item) => item.textContent);
+
+describe("FE-5 acceptance criteria", () => {
+  it("normal path: the breadcrumb shows in segments above the answer text", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "What should I enter for Art der Tätigkeit?{Enter}");
+    answer(0, {
+      answer: "Type of Business Activity.",
+      session_id: "abc",
+      breadcrumb: "Section 1: Allgemeine Angaben → Art der Tätigkeit",
+    });
+    const answerText = await screen.findByText("Type of Business Activity.");
+
+    const bars = breadcrumbBars();
+    expect(bars).toHaveLength(1);
+    expect(segmentsIn(bars[0])).toEqual(["Section 1", "Allgemeine Angaben", "Art der Tätigkeit"]);
+    expect(bars[0].compareDocumentPosition(answerText)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it("something goes wrong: an empty breadcrumb shows no bar", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "Thanks{Enter}");
+    answer(0, { answer: "You're welcome.", session_id: "abc", breadcrumb: "" });
+    await screen.findByText("You're welcome.");
+
+    expect(breadcrumbBars()).toHaveLength(0);
+  });
+
+  it("with Deutsch selected, the German breadcrumb from the backend is shown", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: /Language/ }));
+    await user.click(screen.getByRole("button", { name: de.name }));
+    await user.type(screen.getByRole("textbox"), "Was ist Art der Tätigkeit?{Enter}");
+    await waitFor(() => expect(pending).toHaveLength(1));
+    expect(pending[0].body.lang).toBe("de");
+    answer(0, {
+      answer: "Art der Tätigkeit beschreibt Ihre Tätigkeit.",
+      session_id: "abc",
+      breadcrumb: "Abschnitt 1: Allgemeine Angaben → Art der Tätigkeit",
+    });
+    await screen.findByText("Art der Tätigkeit beschreibt Ihre Tätigkeit.");
+
+    expect(segmentsIn(breadcrumbBars()[0])).toEqual(["Abschnitt 1", "Allgemeine Angaben", "Art der Tätigkeit"]);
+  });
+
+  it("each answer keeps its own breadcrumb", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "First question{Enter}");
+    answer(0, { answer: "First answer", session_id: "abc", breadcrumb: "Section 1: Allgemeine Angaben" });
+    await screen.findByText("First answer");
+    await user.type(screen.getByRole("textbox"), "Second question{Enter}");
+    await waitFor(() => expect(pending).toHaveLength(2));
+    answer(1, { answer: "Second answer", session_id: "abc", breadcrumb: "Section 9: Betriebsstätten" });
+    await screen.findByText("Second answer");
+
+    expect(breadcrumbBars().map(segmentsIn)).toEqual([
+      ["Section 1", "Allgemeine Angaben"],
+      ["Section 9", "Betriebsstätten"],
+    ]);
+  });
+});
