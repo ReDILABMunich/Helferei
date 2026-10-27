@@ -46,7 +46,7 @@ function BotMessage({ text, breadcrumb = null, onSegmentClick }: BotMessageProps
                       ) : (
                         <button
                           type="button"
-                          className="p-2 text-blue-600"
+                          className="p-2 text-blue-600 hover:text-brand-500 active:text-blue-900"
                           // The path up to and including this segment.
                           onClick={() => onSegmentClick?.(segments.slice(0, index + 1).join(" → "))}
                         >
