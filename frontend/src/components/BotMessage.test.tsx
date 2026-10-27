@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import BotMessage from "./BotMessage";
 
 // The segments of the breadcrumb bar in order, and the library icons in it.
@@ -39,5 +40,21 @@ describe("BotMessage", () => {
 
     expect(segments()).toEqual(["Allgemeine Angaben"]);
     expect(icons()).toEqual([]);
+  });
+
+  it("makes every segment but the last a button", () => {
+    render(<BotMessage text="Answer" breadcrumb="Section 1: Allgemeine Angaben → Art der Tätigkeit" onSegmentClick={() => {}} />);
+
+    const buttons = within(screen.getByTestId("breadcrumb")).getAllByRole("button");
+    expect(buttons.map((button) => button.textContent)).toEqual(["Section 1", "Allgemeine Angaben"]);
+  });
+
+  it("clicking the first segment sends no arrow", async () => {
+    const onSegmentClick = vi.fn();
+    render(<BotMessage text="Answer" breadcrumb="Section 1: Allgemeine Angaben → Art der Tätigkeit" onSegmentClick={onSegmentClick} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Section 1" }));
+
+    expect(onSegmentClick).toHaveBeenCalledWith("Section 1");
   });
 });
