@@ -5,6 +5,7 @@ import { ArrowRightIcon } from "./icons";
 type BotMessageProps = {
   text: string;
   breadcrumb?: string | null;
+  onSegmentClick?: (path: string) => void;
 };
 
 // The backend marks list items with "•"; markdown needs "- ".
@@ -22,7 +23,7 @@ function toSegments(breadcrumb: string): string[] {
   return [...head, ...rest];
 }
 
-function BotMessage({ text, breadcrumb = null }: BotMessageProps) {
+function BotMessage({ text, breadcrumb = null, onSegmentClick }: BotMessageProps) {
   const segments = breadcrumb ? toSegments(breadcrumb) : [];
 
   return (
@@ -40,7 +41,18 @@ function BotMessage({ text, breadcrumb = null }: BotMessageProps) {
                   const last = index === segments.length - 1;
                   return (
                     <li key={index} className="flex items-center">
-                      <span className={`p-2 ${last ? "text-neutral-900" : "text-blue-600"}`}>{segment}</span>
+                      {last ? (
+                        <span className="p-2 text-neutral-900">{segment}</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="p-2 text-blue-600"
+                          // The path up to and including this segment.
+                          onClick={() => onSegmentClick?.(segments.slice(0, index + 1).join(" → "))}
+                        >
+                          {segment}
+                        </button>
+                      )}
                       {!last && <ArrowRightIcon className="w-5 text-black" />}
                     </li>
                   );

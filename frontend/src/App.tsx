@@ -35,7 +35,7 @@ function App() {
       <AppHeader content={content} onLanguageChange={setLang} onNewChat={() => setIsNewChatDialogOpen(true)} />
       <main className="flex-1 min-h-0 overflow-y-auto px-5 desktop:px-8">
         <div className="mx-auto max-w-content flex flex-col gap-2 tablet:gap-3">
-          <MessageList content={content} messages={messages} />
+          <MessageList content={content} messages={messages} onSend={send} />
           {status === "sending" && <ThinkingIndicator content={content} />}
           {status === "failed" && <ErrorMessage content={content} onRetry={retry} />}
         </div>
