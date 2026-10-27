@@ -59,7 +59,7 @@ No new states. The rules:
 - **When** the answer has a list item with neither " · " nor " — "
 - **Then** nothing in that item is `blue-900`, and the answer shows as before
 
-Smaller tests: one per rule in Behaviour and per row in Edge cases, on `fieldName`. One test that the user bubble text is `neutral-900`.
+Smaller tests: one per rule in Behaviour and per row in Edge cases, on `fieldName`.
 
 ## Design
 
@@ -71,4 +71,4 @@ The Figma design, "AI Chat" layer and the "Chat Thread" frame:
 | German field name | `blue-900` |
 | Bot answer bubble corners | 24px top left, top right and bottom right, 0 bottom left |
 
-Colours and corners cannot be measured in jsdom, so they are also checked by eye in the browser.
+Colours and corners cannot be measured in jsdom, so they are measured in the browser with Playwright.
