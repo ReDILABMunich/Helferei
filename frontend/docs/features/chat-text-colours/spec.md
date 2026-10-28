@@ -13,8 +13,8 @@ The text in the chat bubbles becomes `neutral-900`, as in the Figma design. In a
 
 ## Interface
 
-- New function `fieldName(line: string, first: boolean): string | null` in `BotMessage`. It gets one line of the answer text, and whether it is the first line. It returns the German field name in the line, or `null` if there is none.
-- `BotMessage` shows the returned name in `blue-900`. The rest of the line keeps its colour.
+- New function `fieldName(line: string, place: "item" | "first-line" | "other"): string | null` in `BotMessage`. It gets one line of the answer text, without the "•", and where the line is: a list item, the first line, or another line. It returns the German field name in the line, or `null` if there is none.
+- `BotMessage` gives `ReactMarkdown` its own `li` and `p` components, which call `fieldName`. They show the returned name in `blue-900`. The rest of the line keeps its colour.
 - No new props.
 
 ## Behaviour (state machine)
