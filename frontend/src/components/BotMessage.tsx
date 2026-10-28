@@ -27,7 +27,7 @@ function toSegments(breadcrumb: string): string[] {
 type Place = "item" | "first-line" | "other";
 
 // The German field name in a line: before " · " or " — " in a list item,
-// in quotes on the first line, for example "Section 9 'Betriebsstätten' · ...".
+// in quotes on the first line.
 function fieldName(line: string, place: Place): string | null {
   if (place === "item") {
     const end = line.includes(" · ") ? line.indexOf(" · ") : line.indexOf(" — ");
