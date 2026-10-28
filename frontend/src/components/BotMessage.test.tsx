@@ -58,3 +58,57 @@ describe("BotMessage", () => {
     expect(onSegmentClick).toHaveBeenCalledWith("Section 1");
   });
 });
+
+// The texts shown in blue-900 inside the answer text, in order.
+const blueNames = () =>
+  [...document.querySelectorAll(".bot-prose .text-blue-900")].map((el) => el.textContent);
+
+describe("BotMessage field names", () => {
+  it("a German list item has the text before — as its name", () => {
+    render(<BotMessage text={"Sie brauchen:\n• Geburtsdatum — Ihr Geburtsdatum"} />);
+
+    expect(blueNames()).toEqual(["Geburtsdatum"]);
+  });
+
+  it("a first line that starts with Abschnitt has the quoted text as its name", () => {
+    render(<BotMessage text="Abschnitt 9 'Betriebsstätten' behandelt weitere Betriebsstätten." />);
+
+    expect(blueNames()).toEqual(["Betriebsstätten"]);
+  });
+
+  it("a first line that starts with a quote has the quoted text as its name", () => {
+    render(<BotMessage text="'Geburtsdatum' · Date of Birth — is the field where you enter your date of birth." />);
+
+    expect(blueNames()).toEqual(["Geburtsdatum"]);
+  });
+
+  it("a first line that quotes the user's words has no name", () => {
+    render(<BotMessage text={"I found several matching 'gebusdatum' in:\n• Geburtsdatum · Date of Birth — date of birth"} />);
+
+    expect(blueNames()).toEqual(["Geburtsdatum"]);
+  });
+
+  it("a name with - is blue up to the ·", () => {
+    render(
+      <BotMessage
+        text={
+          "It includes:\n• Adresse - nur anzugeben, falls von Adresse der steuerpflichtigen Person abweichend · Address - only if different — only fill if needed"
+        }
+      />,
+    );
+
+    expect(blueNames()).toEqual(["Adresse - nur anzugeben, falls von Adresse der steuerpflichtigen Person abweichend"]);
+  });
+
+  it("the quotes in the navigation tip are not names", () => {
+    render(
+      <BotMessage
+        text={
+          "You need:\n• Geburtsdatum · Date of Birth — date of birth\n\n🧭 To navigate the form, type a section number or the GERMAN name of a section, subsection, or field — e.g. '7', 'Kleinunternehmer-Regelung', or 'Geburtsdatum'."
+        }
+      />,
+    );
+
+    expect(blueNames()).toEqual(["Geburtsdatum"]);
+  });
+});

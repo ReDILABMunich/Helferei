@@ -491,3 +491,44 @@ describe("FE-15 acceptance criteria", () => {
     expect(screen.queryByText("Section 1 → Allgemeine Angaben")).not.toBeInTheDocument();
   });
 });
+
+// The last bot answer, and the texts shown in blue-900 inside it, in order.
+const lastAnswer = () => [...document.querySelectorAll(".bot-prose")].at(-1)!;
+const blueIn = (answer: Element) => [...answer.querySelectorAll(".text-blue-900")].map((el) => el.textContent);
+
+describe("FE-13 acceptance criteria", () => {
+  it("normal path: the German field names are blue-900 and the rest of the answer is neutral-900", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "Section 9{Enter}");
+    answer(0, {
+      answer:
+        "Section 9 'Betriebsstätten' · Business Premises — asks about additional business premises.\n\n" +
+        "In this section, you will provide information about:\n" +
+        "• Bezeichnung der Betriebsstätte · Name/Description of Business Premise — description and address of each location.",
+      session_id: "abc",
+      breadcrumb: "Section 9: Betriebsstätten",
+    });
+    await screen.findByText(/asks about additional business premises/);
+
+    expect(blueIn(lastAnswer())).toEqual(["Betriebsstätten", "Bezeichnung der Betriebsstätte"]);
+    expect(lastAnswer().closest(".text-neutral-900")).not.toBeNull();
+  });
+
+  it("something goes wrong: a list item with neither · nor — has nothing in blue-900", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "Section 9{Enter}");
+    answer(0, {
+      answer: "You need:\n• Bezeichnung der Betriebsstätte\n• Geburtsdatum · Date of Birth — date of birth",
+      session_id: "abc",
+      breadcrumb: "",
+    });
+    await screen.findByText("Bezeichnung der Betriebsstätte");
+
+    expect(blueIn(lastAnswer())).toEqual(["Geburtsdatum"]);
+    expect(lastAnswer().closest(".text-neutral-900")).not.toBeNull();
+  });
+});
