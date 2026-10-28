@@ -593,8 +593,10 @@ describe("FE-14 acceptance criteria", () => {
     await user.type(screen.getByRole("textbox"), "First question{Enter}");
     answer(0, { detail: "AI request failed" }, 502);
     const alert = await screen.findByRole("alert");
+    const before = scrolls.length;
     await user.click(within(alert).getByRole("button", { name: en.error.retry }));
 
+    expect(scrolls.length).toBeGreaterThan(before);
     expect(lastScroll()).toContain(en.thinking);
     expect(lastScroll()).not.toContain(en.error.title);
   });
