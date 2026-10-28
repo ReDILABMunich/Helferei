@@ -59,7 +59,7 @@ No new states. The rules:
 - **When** the answer has a list item with neither " · " nor " — "
 - **Then** nothing in that item is `blue-900`, and the answer shows as before
 
-Smaller tests: one per rule in Behaviour and per row in Edge cases, on `fieldName`.
+Smaller tests: one per rule in Behaviour and per row in Edge cases that the two checks above do not already cover.
 
 ## Design
 
