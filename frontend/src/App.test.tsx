@@ -532,3 +532,84 @@ describe("FE-13 acceptance criteria", () => {
     expect(lastAnswer().closest(".text-neutral-900")).not.toBeNull();
   });
 });
+
+describe("FE-14 acceptance criteria", () => {
+  // jsdom has no scrollIntoView, so each call saves what was on screen and
+  // whether the scrolled element is the last one in the chat.
+  type Scroll = { text: string; isLast: boolean };
+  let scrolls: Scroll[];
+  const original = Element.prototype.scrollIntoView;
+
+  afterEach(() => {
+    Element.prototype.scrollIntoView = original;
+  });
+
+  beforeEach(() => {
+    scrolls = [];
+    Element.prototype.scrollIntoView = vi.fn(function (this: Element) {
+      scrolls.push({
+        text: document.querySelector("main")?.textContent ?? "",
+        isLast: this.closest("main") !== null && this.nextElementSibling === null,
+      });
+    });
+  });
+
+  function lastScroll() {
+    expect(scrolls.length).toBeGreaterThan(0);
+    const scroll = scrolls[scrolls.length - 1];
+    expect(scroll.isLast).toBe(true);
+    return scroll.text;
+  }
+
+  it("normal path: scrolls to the end after the question and again after the answer", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "What is a Steuernummer?{Enter}");
+    expect(lastScroll()).toContain("What is a Steuernummer?");
+    expect(lastScroll()).toContain(en.thinking);
+
+    answer(0, { answer: "A Steuernummer is your tax number.", session_id: "abc", breadcrumb: "" });
+    await screen.findByText("A Steuernummer is your tax number.");
+    expect(lastScroll()).toContain("A Steuernummer is your tax number.");
+  });
+
+  it("something goes wrong: scrolls to the end after the error message is shown", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "First question{Enter}");
+    answer(0, { detail: "AI request failed" }, 502);
+    await screen.findByRole("alert");
+
+    expect(lastScroll()).toContain(en.error.title);
+    expect(lastScroll()).toContain(en.error.retry);
+  });
+
+  it("Try again scrolls to the end when the loading indicator replaces the error", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "First question{Enter}");
+    answer(0, { detail: "AI request failed" }, 502);
+    const alert = await screen.findByRole("alert");
+    await user.click(within(alert).getByRole("button", { name: en.error.retry }));
+
+    expect(lastScroll()).toContain(en.thinking);
+    expect(lastScroll()).not.toContain(en.error.title);
+  });
+
+  it("switching the language does not scroll", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.type(screen.getByRole("textbox"), "First question{Enter}");
+    answer(0, { answer: "First answer", session_id: "abc", breadcrumb: "" });
+    await screen.findByText("First answer");
+    const before = scrolls.length;
+
+    await user.click(screen.getByRole("button", { name: /Language/ }));
+    await user.click(screen.getByRole("button", { name: de.name }));
+
+    expect(scrolls).toHaveLength(before);
+  });
+});
