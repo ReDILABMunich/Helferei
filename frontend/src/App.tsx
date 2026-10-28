@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AppHeader from "./components/AppHeader";
 import Disclaimer from "./components/Disclaimer";
 import ErrorMessage from "./components/ErrorMessage";
@@ -19,6 +19,7 @@ function App() {
   const [isNewChatDialogOpen, setIsNewChatDialogOpen] = useState(false);
   // A new key makes React build a new input, so its text is cleared.
   const [inputKey, setInputKey] = useState(0);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   function startNewChat() {
     setIsNewChatDialogOpen(false);
@@ -30,6 +31,10 @@ function App() {
     document.documentElement.lang = lang;
   }, [lang]);
 
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ block: "end" });
+  }, [messages, status]);
+
   return (
     <div className="h-full flex flex-col gap-2 tablet:gap-3">
       <AppHeader content={content} onLanguageChange={setLang} onNewChat={() => setIsNewChatDialogOpen(true)} />
@@ -38,6 +43,7 @@ function App() {
           <MessageList content={content} messages={messages} onSend={send} />
           {status === "sending" && <ThinkingIndicator content={content} />}
           {status === "failed" && <ErrorMessage content={content} onRetry={retry} />}
+          <div ref={chatEndRef} />
         </div>
       </main>
       <footer className="px-5 desktop:px-8 py-5">
