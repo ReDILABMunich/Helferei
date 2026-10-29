@@ -40,4 +40,8 @@ I can help you understand the form, explain what each field means, what informat
     confirm: "Yes, Reset",
     close: "Close",
   },
+  menu: {
+    open: "Open menu",
+    close: "Close menu",
+  },
 };

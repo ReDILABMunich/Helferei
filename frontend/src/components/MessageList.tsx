@@ -10,7 +10,7 @@ type MessageListProps = {
 
 function MessageList({ content, messages }: MessageListProps) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2 tablet:gap-3">
       <BotMessage text={content.welcome} />
       {messages.map((message) =>
         message.role === "bot" ? (

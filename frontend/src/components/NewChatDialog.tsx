@@ -24,7 +24,7 @@ function NewChatDialog({ content, onConfirm, onCancel }: NewChatDialogProps) {
     <div
       onKeyDown={handleKeyDown}
       onClick={handleBackgroundClick}
-      className="fixed inset-0 z-20 flex justify-center items-center bg-black/60"
+      className="fixed inset-0 z-20 flex justify-center items-center p-5 bg-black/60"
     >
       <div
         role="dialog"

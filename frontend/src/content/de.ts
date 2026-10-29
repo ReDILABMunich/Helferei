@@ -39,4 +39,8 @@ Ich helfe Ihnen dabei, das Formular zu verstehen, erkläre Ihnen die Bedeutung d
     confirm: "Ja, zurücksetzen",
     close: "Schließen",
   },
+  menu: {
+    open: "Menü öffnen",
+    close: "Menü schließen",
+  },
 };
