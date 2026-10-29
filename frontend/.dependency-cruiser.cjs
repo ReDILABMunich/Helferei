@@ -13,7 +13,7 @@ module.exports = {
       from: { path: "^src/(main|App)\\.tsx$" },
       to: {
         path: "^src/",
-        pathNot: "^src/(App\\.tsx|components/|hooks/|content/|assets/|types\\.ts|[^/]+\\.css)$",
+        pathNot: "^src/(App\\.tsx|types\\.ts|[^/]+\\.css)$|^src/(components|hooks|content|assets)/",
       },
     },
     {

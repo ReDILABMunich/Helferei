@@ -2,9 +2,9 @@
 
 ## Context
 
-Several parts of the interface cause a request to the backend: the send button, the Enter key, and the retry button (Ticket 3). Every request must carry the current `session_id`. Without it, the backend treats the request as a new conversation and the agent silently forgets the earlier questions. There is no error; the user only notices that the answers no longer make sense.
+Several parts of the interface cause a request to the backend: the send button, the Enter key, and the retry button (FE-3). Every request must carry the current `session_id`. Without it, the backend treats the request as a new conversation and the agent silently forgets the earlier questions. There is no error; the user only notices that the answers no longer make sense.
 
-A question must also be sent only once, even when Enter is held down or Enter is followed by a click (Ticket 1).
+A question must also be sent only once, even when Enter is held down or Enter is followed by a click (FE-1).
 
 If each component sent its own requests, each one would have to add the `session_id` and guard against double sending. One missed spot breaks the conversation without any visible error.
 

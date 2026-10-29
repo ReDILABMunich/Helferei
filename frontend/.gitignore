@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local Turkish translations of the docs (the English files are the source of truth)
+*.tr.md
