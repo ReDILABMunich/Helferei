@@ -29,5 +29,6 @@ I can help you understand the form, explain what each field means, what informat
   error: {
     title: "Something went wrong.",
     body: "I couldn't process your request.\nPlease try again.",
+    retry: "Try again",
   },
 };

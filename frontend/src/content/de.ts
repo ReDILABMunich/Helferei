@@ -28,5 +28,6 @@ Ich helfe Ihnen dabei, das Formular zu verstehen, erkläre Ihnen die Bedeutung d
   error: {
     title: "Etwas ist schiefgelaufen.",
     body: "Ich konnte Ihre Anfrage nicht verarbeiten.\nBitte versuchen Sie es erneut.",
+    retry: "Erneut versuchen",
   },
 };

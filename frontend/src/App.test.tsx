@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
@@ -152,5 +152,47 @@ describe("FE-2 acceptance criteria", () => {
     await user.type(screen.getByRole("textbox"), "What is a Steuernummer?{Enter}");
     await waitFor(() => expect(pending).toHaveLength(1));
     expect(pending[0].body.lang).toBe("en");
+  });
+});
+
+describe("FE-3 acceptance criteria", () => {
+  it("normal path: Try again sends the same question with the same session and shows the answer", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "First question{Enter}");
+    answer(0, { answer: "First answer", session_id: "abc", breadcrumb: "" });
+    await screen.findByText("First answer");
+
+    await user.type(screen.getByRole("textbox"), "Second question{Enter}");
+    answer(1, { detail: "AI request failed" }, 502);
+    const alert = await screen.findByRole("alert");
+
+    await user.click(within(alert).getByRole("button", { name: en.error.retry }));
+    await waitFor(() => expect(pending).toHaveLength(3));
+    expect(pending[2].body.message).toBe("Second question");
+    expect(pending[2].body.session_id).toBe("abc");
+
+    answer(2, { answer: "Second answer", session_id: "abc", breadcrumb: "" });
+    expect(await screen.findByText("Second answer")).toBeInTheDocument();
+    expect(screen.getAllByText("Second question")).toHaveLength(1);
+  });
+
+  it("something goes wrong: when Try again fails too, the error and the button come back", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "First question{Enter}");
+    answer(0, { detail: "AI request failed" }, 502);
+    let alert = await screen.findByRole("alert");
+
+    await user.click(within(alert).getByRole("button", { name: en.error.retry }));
+    await waitFor(() => expect(pending).toHaveLength(2));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    answer(1, { detail: "AI request failed" }, 502);
+
+    alert = await screen.findByRole("alert");
+    expect(within(alert).getByRole("button", { name: en.error.retry })).toBeInTheDocument();
+    expect(screen.getAllByText("First question")).toHaveLength(1);
   });
 });
