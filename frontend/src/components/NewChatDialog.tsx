@@ -1,6 +1,7 @@
 import { useId } from "react";
 import type { KeyboardEvent, MouseEvent } from "react";
 import type { en } from "../content/en";
+import { CloseIcon, InfoIcon } from "./icons";
 
 type NewChatDialogProps = {
   content: typeof en;
@@ -38,19 +39,11 @@ function NewChatDialog({ content, onConfirm, onCancel }: NewChatDialogProps) {
           onClick={onCancel}
           className="absolute top-6.75 right-7 text-neutral-500"
         >
-          {/* Placeholder until the icon library (FE-8). */}
-          <svg viewBox="0 0 20 20" aria-hidden="true" className="w-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <path d="M2 2 L18 18 M18 2 L2 18" />
-          </svg>
+          <CloseIcon className="w-5" />
         </button>
         <div className="self-stretch flex items-start gap-3 p-1">
           <div className="flex items-center p-1">
-            {/* Placeholder until the icon library (FE-8). */}
-            <svg viewBox="0 0 40 40" aria-hidden="true" className="w-10 text-orange-400">
-              <circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" strokeWidth="3" />
-              <circle cx="20" cy="10.5" r="2.5" fill="currentColor" />
-              <path d="M20 17 V31" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
-            </svg>
+            <InfoIcon className="w-10 text-orange-400" />
           </div>
           <div className="flex-1 flex flex-col items-start gap-2">
             <h2 id={titleId} className="font-bold text-h4 text-neutral-900">

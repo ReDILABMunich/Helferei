@@ -5,6 +5,10 @@ import { de } from "../content/de";
 import { en } from "../content/en";
 import MessageInput from "./MessageInput";
 
+// The library name of each icon inside an element, in order.
+const iconsIn = (element: HTMLElement) =>
+  [...element.querySelectorAll("svg")].map((svg) => svg.getAttribute("data-icon"));
+
 describe("MessageInput", () => {
   it("sends the text with the send button and clears the box", async () => {
     const user = userEvent.setup();
@@ -94,5 +98,15 @@ describe("MessageInput", () => {
 
     expect(screen.getByText(de.tooLong)).toBeInTheDocument();
     expect(screen.getByRole("textbox")).toHaveValue("a".repeat(801));
+  });
+
+  it("over the limit shows the caution icon next to the error", async () => {
+    const user = userEvent.setup();
+    render(<MessageInput content={en} onSend={vi.fn()} sending={false} />);
+
+    await user.click(screen.getByRole("textbox"));
+    await user.paste("a".repeat(801));
+
+    expect(iconsIn(screen.getByText(en.tooLong))).toEqual(["caution"]);
   });
 });
