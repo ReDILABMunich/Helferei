@@ -42,7 +42,7 @@ describe("FE-1 acceptance criteria", () => {
   it("normal path: asks a question, shows the answer and continues the conversation", async () => {
     const user = userEvent.setup();
     render(<App />);
-    const welcomeFirstLine = en.welcome.split("\n")[0];
+    const welcomeFirstLine = en.welcome.split("\n")[0].replace(/\\$/, "");
     expect(screen.getByText(welcomeFirstLine, { exact: false })).toBeInTheDocument();
 
     await user.type(
