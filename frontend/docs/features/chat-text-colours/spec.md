@@ -6,7 +6,7 @@ The text in the chat bubbles becomes `neutral-900`, as in the Figma design. In a
 
 ## What it does not touch
 
-- The hint strip. Its text stays `blue-900`, because the Figma design was changed to this colour after the ticket was written.
+- The hint strip. Its text is `neutral-700`, as asked in the design review after FE-13, for a clearer visual hierarchy and better readability.
 - The breadcrumb (FE-5, FE-15).
 - The backend and how the agent writes its answers.
 - The colour of the other lines in the answer, such as the navigation tip at the end.
