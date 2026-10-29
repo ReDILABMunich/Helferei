@@ -1,6 +1,12 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import BotMessage from "./BotMessage";
+
+// The segments of the breadcrumb bar in order, and the library icons in it.
+const segments = () =>
+  within(screen.getByTestId("breadcrumb")).getAllByRole("listitem").map((item) => item.textContent);
+const icons = () =>
+  [...screen.getByTestId("breadcrumb").querySelectorAll("svg")].map((svg) => svg.getAttribute("data-icon"));
 
 describe("BotMessage", () => {
   it("shows lines that start with • as a list", () => {
@@ -8,5 +14,30 @@ describe("BotMessage", () => {
 
     const items = screen.getAllByRole("listitem");
     expect(items.map((item) => item.textContent)).toEqual(["Vorname", "Nachname", "Geburtsdatum"]);
+  });
+
+  it("shows no breadcrumb bar without a breadcrumb", () => {
+    render(<BotMessage text="Welcome" />);
+
+    expect(screen.queryByTestId("breadcrumb")).not.toBeInTheDocument();
+  });
+
+  it("splits only the first segment at its colon, trims spaces and drops empty segments", () => {
+    render(<BotMessage text="Answer" breadcrumb=" Section 3: Kontakt →  → Telefon: privat " />);
+
+    expect(segments()).toEqual(["Section 3", "Kontakt", "Telefon: privat"]);
+  });
+
+  it("puts an arrow-right icon between two segments", () => {
+    render(<BotMessage text="Answer" breadcrumb="Section 1: Allgemeine Angaben → Art der Tätigkeit" />);
+
+    expect(icons()).toEqual(["arrow-right", "arrow-right"]);
+  });
+
+  it("shows a breadcrumb with one segment and no colon without an arrow", () => {
+    render(<BotMessage text="Answer" breadcrumb="Allgemeine Angaben" />);
+
+    expect(segments()).toEqual(["Allgemeine Angaben"]);
+    expect(icons()).toEqual([]);
   });
 });

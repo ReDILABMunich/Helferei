@@ -14,7 +14,7 @@ function MessageList({ content, messages }: MessageListProps) {
       <BotMessage text={content.welcome} />
       {messages.map((message) =>
         message.role === "bot" ? (
-          <BotMessage key={message.id} text={message.text} />
+          <BotMessage key={message.id} text={message.text} breadcrumb={message.breadcrumb} />
         ) : (
           <UserMessage key={message.id} text={message.text} />
         ),
