@@ -8,7 +8,7 @@ describe("MessageInput", () => {
   it("sends the text with the send button and clears the box", async () => {
     const user = userEvent.setup();
     const onSend = vi.fn();
-    render(<MessageInput onSend={onSend} sending={false} />);
+    render(<MessageInput content={en} onSend={onSend} sending={false} />);
 
     await user.type(screen.getByRole("textbox"), "What is a Steuernummer?");
     await user.click(screen.getByRole("button", { name: en.send }));
@@ -20,7 +20,7 @@ describe("MessageInput", () => {
   it("does not send an empty box or only spaces", async () => {
     const user = userEvent.setup();
     const onSend = vi.fn();
-    render(<MessageInput onSend={onSend} sending={false} />);
+    render(<MessageInput content={en} onSend={onSend} sending={false} />);
 
     await user.click(screen.getByRole("button", { name: en.send }));
     await user.type(screen.getByRole("textbox"), "   ");

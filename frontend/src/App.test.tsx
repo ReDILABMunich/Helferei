@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
+import { de } from "./content/de";
 import { en } from "./content/en";
 
 // The backend is replaced by a fetch the test controls: each call waits until
@@ -88,5 +89,68 @@ describe("FE-1 acceptance criteria", () => {
     await waitFor(() => expect(pending).toHaveLength(3));
     expect(screen.queryByText(en.error.title)).not.toBeInTheDocument();
     expect(pending[2].body.session_id).toBe("abc");
+  });
+});
+
+describe("FE-2 acceptance criteria", () => {
+  it("normal path: choosing Deutsch shows the interface in German and sends the question in German", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: /Language/ }));
+    await user.click(screen.getByRole("button", { name: de.name }));
+
+    expect(screen.getByText(de.subtitle)).toBeInTheDocument();
+    const welcomeFirstLine = de.welcome.split("\n")[0].replace(/\\$/, "");
+    expect(screen.getByText(welcomeFirstLine, { exact: false })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(de.inputPlaceholder)).toBeInTheDocument();
+    expect(screen.getByText(de.hint)).toBeInTheDocument();
+    expect(screen.getByText(de.disclaimer)).toBeInTheDocument();
+
+    await user.type(screen.getByRole("textbox"), "Was ist eine Steuernummer?{Enter}");
+    await waitFor(() => expect(pending).toHaveLength(1));
+    expect(pending[0].body.lang).toBe("de");
+  });
+
+  it("something goes wrong: the error message is in German", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: /Language/ }));
+    await user.click(screen.getByRole("button", { name: de.name }));
+    await user.type(screen.getByRole("textbox"), "Erste Frage{Enter}");
+    answer(0, { detail: "AI request failed" }, 502);
+
+    expect(await screen.findByText(de.error.title)).toBeInTheDocument();
+  });
+
+  it("the loading indicator is in German", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: /Language/ }));
+    await user.click(screen.getByRole("button", { name: de.name }));
+    await user.type(screen.getByRole("textbox"), "Erste Frage{Enter}");
+
+    expect(screen.getByText(de.thinking)).toBeInTheDocument();
+  });
+
+  it("switching back to English shows English again, sets the page language and sends in English", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: /Language/ }));
+    await user.click(screen.getByRole("button", { name: de.name }));
+    expect(document.documentElement.lang).toBe("de");
+
+    await user.click(screen.getByRole("button", { name: /Sprache/ }));
+    await user.click(screen.getByRole("button", { name: en.name }));
+
+    expect(screen.getByText(en.subtitle)).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe("en");
+
+    await user.type(screen.getByRole("textbox"), "What is a Steuernummer?{Enter}");
+    await waitFor(() => expect(pending).toHaveLength(1));
+    expect(pending[0].body.lang).toBe("en");
   });
 });

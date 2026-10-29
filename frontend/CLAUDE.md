@@ -28,6 +28,7 @@ Layers in `src/`, imports only go downwards:
 
 - Only `hooks` calls the backend. Components get data and callbacks through props. See [decision 002](decisions/002-only-hooks-talk-to-the-backend.md).
 - The welcome message lives in `content/`, not in the message list. See [decision 001](decisions/001-welcome-message-is-interface-text.md).
+- Components get interface text through a `content` prop from `App`; they never import a language file. See [decision 003](decisions/003-interface-text-comes-through-a-content-prop.md).
 - `npm run lint` enforces the layer rules. Never edit `.dependency-cruiser-known-violations.json` to make a new violation pass; fix the import instead.
 
 ## How we work

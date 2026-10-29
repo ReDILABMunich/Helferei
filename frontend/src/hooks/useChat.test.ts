@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { sendChat } from "../api/chat";
-import type { ChatReply } from "../types";
+import type { ChatReply, Language } from "../types";
 import { useChat } from "./useChat";
 
 vi.mock("../api/chat", () => ({ sendChat: vi.fn() }));
@@ -30,7 +30,7 @@ beforeEach(() => {
 
 describe("useChat", () => {
   it("starts idle with no messages", () => {
-    const { result } = renderHook(() => useChat());
+    const { result } = renderHook(() => useChat("en"));
 
     expect(result.current.status).toBe("idle");
     expect(result.current.messages).toEqual([]);
@@ -38,7 +38,7 @@ describe("useChat", () => {
 
   it("idle -> sending: adds the question and sends it without a session id", () => {
     sendChatMock.mockReturnValue(deferred<ChatReply>().promise);
-    const { result } = renderHook(() => useChat());
+    const { result } = renderHook(() => useChat("en"));
 
     act(() => result.current.send("What is a Steuernummer?"));
 
@@ -59,7 +59,7 @@ describe("useChat", () => {
     sendChatMock
       .mockReturnValueOnce(first.promise)
       .mockReturnValueOnce(deferred<ChatReply>().promise);
-    const { result } = renderHook(() => useChat());
+    const { result } = renderHook(() => useChat("en"));
 
     act(() => result.current.send("First"));
     await act(async () => first.resolve(reply("abc")));
@@ -85,7 +85,7 @@ describe("useChat", () => {
       .mockReturnValueOnce(first.promise)
       .mockReturnValueOnce(second.promise)
       .mockReturnValueOnce(deferred<ChatReply>().promise);
-    const { result } = renderHook(() => useChat());
+    const { result } = renderHook(() => useChat("en"));
 
     act(() => result.current.send("First"));
     await act(async () => first.resolve(reply("abc")));
@@ -109,7 +109,7 @@ describe("useChat", () => {
 
   it("sending -> sending: ignores a second send, even in the same tick", () => {
     sendChatMock.mockReturnValue(deferred<ChatReply>().promise);
-    const { result } = renderHook(() => useChat());
+    const { result } = renderHook(() => useChat("en"));
 
     act(() => {
       result.current.send("Once");
@@ -122,7 +122,7 @@ describe("useChat", () => {
   });
 
   it("ignores empty text and text with only spaces", () => {
-    const { result } = renderHook(() => useChat());
+    const { result } = renderHook(() => useChat("en"));
 
     act(() => result.current.send(""));
     act(() => result.current.send("   "));
@@ -130,5 +130,28 @@ describe("useChat", () => {
     expect(sendChatMock).not.toHaveBeenCalled();
     expect(result.current.status).toBe("idle");
     expect(result.current.messages).toEqual([]);
+  });
+
+  it("a new language keeps the messages and the session, and is sent with the next question", async () => {
+    const first = deferred<ChatReply>();
+    sendChatMock
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(deferred<ChatReply>().promise);
+    const { result, rerender } = renderHook(({ lang }) => useChat(lang), {
+      initialProps: { lang: "en" as Language },
+    });
+
+    act(() => result.current.send("First"));
+    await act(async () => first.resolve(reply("abc")));
+    rerender({ lang: "de" });
+
+    expect(result.current.messages).toHaveLength(2);
+
+    act(() => result.current.send("Zweite"));
+    expect(sendChatMock).toHaveBeenLastCalledWith({
+      message: "Zweite",
+      session_id: "abc",
+      lang: "de",
+    });
   });
 });
