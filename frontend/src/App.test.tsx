@@ -196,3 +196,27 @@ describe("FE-3 acceptance criteria", () => {
     expect(screen.getAllByText("First question")).toHaveLength(1);
   });
 });
+
+describe("FE-6 acceptance criteria", () => {
+  it("normal path: the counter shows the number of characters out of 800", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "What is a Steuernummer?");
+
+    expect(screen.getByText("23/800")).toBeInTheDocument();
+  });
+
+  it("something goes wrong: over the limit the counter shows it, the error is shown and nothing is sent", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("textbox"));
+    await user.paste("a".repeat(900));
+    await user.click(screen.getByRole("button", { name: en.send }));
+
+    expect(screen.getByText("900/800")).toBeInTheDocument();
+    expect(screen.getByText(en.tooLong)).toBeInTheDocument();
+    expect(pending).toHaveLength(0);
+  });
+});
