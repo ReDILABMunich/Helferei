@@ -220,3 +220,82 @@ describe("FE-6 acceptance criteria", () => {
     expect(pending).toHaveLength(0);
   });
 });
+
+describe("FE-4 acceptance criteria", () => {
+  it("normal path: confirming a new chat leaves only the welcome message and drops the session", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "First question{Enter}");
+    answer(0, { answer: "First answer", session_id: "abc", breadcrumb: "" });
+    await screen.findByText("First answer");
+
+    await user.click(screen.getByRole("button", { name: en.newChat.button }));
+    const dialog = screen.getByRole("dialog", { name: en.newChat.title });
+    await user.click(within(dialog).getByRole("button", { name: en.newChat.confirm }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByText("First question")).not.toBeInTheDocument();
+    expect(screen.queryByText("First answer")).not.toBeInTheDocument();
+    const welcomeFirstLine = en.welcome.split("\n")[0].replace(/\\$/, "");
+    expect(screen.getByText(welcomeFirstLine, { exact: false })).toBeInTheDocument();
+
+    await user.type(screen.getByRole("textbox"), "Second question{Enter}");
+    await waitFor(() => expect(pending).toHaveLength(2));
+    expect(pending[1].body.session_id).toBeNull();
+  });
+
+  it("something goes wrong: cancelling keeps the conversation and the session", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "First question{Enter}");
+    answer(0, { answer: "First answer", session_id: "abc", breadcrumb: "" });
+    await screen.findByText("First answer");
+
+    await user.click(screen.getByRole("button", { name: en.newChat.button }));
+    const dialog = screen.getByRole("dialog", { name: en.newChat.title });
+    await user.click(within(dialog).getByRole("button", { name: en.newChat.cancel }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByText("First question")).toBeInTheDocument();
+    expect(screen.getByText("First answer")).toBeInTheDocument();
+
+    await user.type(screen.getByRole("textbox"), "Second question{Enter}");
+    await waitFor(() => expect(pending).toHaveLength(2));
+    expect(pending[1].body.session_id).toBe("abc");
+  });
+
+  it("confirming clears the text box", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "Half a question");
+    await user.click(screen.getByRole("button", { name: en.newChat.button }));
+    await user.click(screen.getByRole("button", { name: en.newChat.confirm }));
+
+    expect(screen.getByRole("textbox")).toHaveValue("");
+  });
+
+  it("the language stays German after a new chat", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: /Language/ }));
+    await user.click(screen.getByRole("button", { name: de.name }));
+    await user.type(screen.getByRole("textbox"), "Erste Frage{Enter}");
+    answer(0, { answer: "Erste Antwort", session_id: "abc", breadcrumb: "" });
+    await screen.findByText("Erste Antwort");
+
+    await user.click(screen.getByRole("button", { name: de.newChat.button }));
+    await user.click(screen.getByRole("button", { name: de.newChat.confirm }));
+
+    const welcomeFirstLine = de.welcome.split("\n")[0].replace(/\\$/, "");
+    expect(screen.getByText(welcomeFirstLine, { exact: false })).toBeInTheDocument();
+
+    await user.type(screen.getByRole("textbox"), "Zweite Frage{Enter}");
+    await waitFor(() => expect(pending).toHaveLength(2));
+    expect(pending[1].body.lang).toBe("de");
+    expect(pending[1].body.session_id).toBeNull();
+  });
+});

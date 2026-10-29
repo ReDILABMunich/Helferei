@@ -5,6 +5,7 @@ import ErrorMessage from "./components/ErrorMessage";
 import HintStrip from "./components/HintStrip";
 import MessageInput from "./components/MessageInput";
 import MessageList from "./components/MessageList";
+import NewChatDialog from "./components/NewChatDialog";
 import ThinkingIndicator from "./components/ThinkingIndicator";
 import { languages } from "./content";
 import { en } from "./content/en";
@@ -14,7 +15,16 @@ import type { Language } from "./types";
 function App() {
   const [lang, setLang] = useState<Language>("en");
   const content = languages.find((language) => language.code === lang) ?? en;
-  const { messages, status, send, retry } = useChat(lang);
+  const { messages, status, send, retry, reset } = useChat(lang);
+  const [isNewChatDialogOpen, setIsNewChatDialogOpen] = useState(false);
+  // A new key makes React build a new input, so its text is cleared.
+  const [inputKey, setInputKey] = useState(0);
+
+  function startNewChat() {
+    setIsNewChatDialogOpen(false);
+    reset();
+    setInputKey((key) => key + 1);
+  }
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -22,7 +32,7 @@ function App() {
 
   return (
     <div className="h-full flex flex-col gap-3">
-      <AppHeader content={content} onLanguageChange={setLang} />
+      <AppHeader content={content} onLanguageChange={setLang} onNewChat={() => setIsNewChatDialogOpen(true)} />
       <main className="flex-1 min-h-0 overflow-y-auto">
         <div className="mx-auto max-w-content flex flex-col gap-3">
           <MessageList content={content} messages={messages} />
@@ -33,10 +43,13 @@ function App() {
       <footer className="w-full mx-auto max-w-content flex flex-col gap-1 py-5">
         <HintStrip content={content} />
         <div className="flex flex-col gap-3">
-          <MessageInput content={content} onSend={send} sending={status === "sending"} />
+          <MessageInput key={inputKey} content={content} onSend={send} sending={status === "sending"} />
           <Disclaimer content={content} />
         </div>
       </footer>
+      {isNewChatDialogOpen && (
+        <NewChatDialog content={content} onConfirm={startNewChat} onCancel={() => setIsNewChatDialogOpen(false)} />
+      )}
     </div>
   );
 }

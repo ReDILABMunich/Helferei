@@ -16,7 +16,7 @@ Ich helfe Ihnen dabei, das Formular zu verstehen, erkläre Ihnen die Bedeutung d
 - Ihr Chatverlauf wird nicht gespeichert.
 
 **Wie kann ich Ihnen helfen?**`,
-  hint: "Navigieren Sie nach Abschnittsnummer oder deutschem Feldnamen, oder stellen Sie eine beliebige Frage. z. B. „Abschnitt 7“, „Geburtsdatum“, „Was ist eine IBAN?“",
+  hint: "Navigieren Sie über die Abschnittsnummer, den deutschen Feldnamen oder stellen Sie eine beliebige Frage. z. B. “7“, “Geburtsdatum“ oder “Was ist eine IBAN?“",
   toggleHint: "Tipps ein- oder ausblenden",
   title: "ATLAS",
   subtitle: "KI-Assistent für den Fragebogen zur steuerlichen Erfassung für Einzelunternehmen",
@@ -30,5 +30,13 @@ Ich helfe Ihnen dabei, das Formular zu verstehen, erkläre Ihnen die Bedeutung d
     title: "Etwas ist schiefgelaufen.",
     body: "Ich konnte Ihre Anfrage nicht verarbeiten.\nBitte versuchen Sie es erneut.",
     retry: "Erneut versuchen",
+  },
+  newChat: {
+    button: "Neuer Chat",
+    title: "Möchten Sie wirklich eine neue Unterhaltung beginnen?",
+    body: "Dadurch wird Ihre aktuelle Unterhaltung gelöscht.",
+    cancel: "Abbrechen",
+    confirm: "Ja, zurücksetzen",
+    close: "Schließen",
   },
 };

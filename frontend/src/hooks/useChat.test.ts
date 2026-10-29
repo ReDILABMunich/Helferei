@@ -266,3 +266,83 @@ describe("useChat retry (FE-3)", () => {
     expect(sendChatMock).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("useChat reset (FE-4)", () => {
+  it("idle -> idle: clears the messages and the next question is sent without a session id", async () => {
+    const first = deferred<ChatReply>();
+    sendChatMock
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(deferred<ChatReply>().promise);
+    const { result } = renderHook(() => useChat("en"));
+
+    act(() => result.current.send("First"));
+    await act(async () => first.resolve(reply("abc")));
+    act(() => result.current.reset());
+
+    expect(result.current.status).toBe("idle");
+    expect(result.current.messages).toEqual([]);
+
+    act(() => result.current.send("Second"));
+    expect(sendChatMock).toHaveBeenLastCalledWith({
+      message: "Second",
+      session_id: null,
+      lang: "en",
+    });
+  });
+
+  it("failed -> idle: removes the error", async () => {
+    const first = deferred<ChatReply>();
+    sendChatMock.mockReturnValueOnce(first.promise);
+    const { result } = renderHook(() => useChat("en"));
+
+    act(() => result.current.send("First"));
+    await act(async () => first.reject(new Error("502")));
+    act(() => result.current.reset());
+
+    expect(result.current.status).toBe("idle");
+    expect(result.current.messages).toEqual([]);
+  });
+
+  it("sending -> idle: a new question can be sent at once, and the late answer is ignored", async () => {
+    const first = deferred<ChatReply>();
+    sendChatMock
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValue(deferred<ChatReply>().promise);
+    const { result } = renderHook(() => useChat("en"));
+
+    act(() => result.current.send("First"));
+    act(() => result.current.reset());
+
+    expect(result.current.status).toBe("idle");
+    expect(result.current.messages).toEqual([]);
+
+    act(() => result.current.send("New"));
+    expect(sendChatMock).toHaveBeenLastCalledWith({
+      message: "New",
+      session_id: null,
+      lang: "en",
+    });
+
+    await act(async () => first.resolve(reply("old")));
+
+    expect(result.current.status).toBe("sending");
+    expect(result.current.messages).toHaveLength(1);
+
+    // The new question is still open, so a second send is blocked.
+    act(() => result.current.send("Again"));
+    expect(sendChatMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("a request that fails after the reset shows no error", async () => {
+    const first = deferred<ChatReply>();
+    sendChatMock.mockReturnValueOnce(first.promise);
+    const { result } = renderHook(() => useChat("en"));
+
+    act(() => result.current.send("First"));
+    act(() => result.current.reset());
+    await act(async () => first.reject(new Error("502")));
+
+    expect(result.current.status).toBe("idle");
+    expect(result.current.messages).toEqual([]);
+  });
+});

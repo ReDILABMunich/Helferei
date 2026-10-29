@@ -32,4 +32,12 @@ I can help you understand the form, explain what each field means, what informat
     body: "I couldn't process your request.\nPlease try again.",
     retry: "Try again",
   },
+  newChat: {
+    button: "New chat",
+    title: "Are you sure you want to start a new conversation?",
+    body: "This will clear your current conversation.",
+    cancel: "Cancel",
+    confirm: "Yes, Reset",
+    close: "Close",
+  },
 };
