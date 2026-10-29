@@ -6,15 +6,16 @@ import UserMessage from "./UserMessage";
 type MessageListProps = {
   content: typeof en;
   messages: Message[];
+  onSend: (text: string) => void;
 };
 
-function MessageList({ content, messages }: MessageListProps) {
+function MessageList({ content, messages, onSend }: MessageListProps) {
   return (
     <div className="flex flex-col gap-2 tablet:gap-3">
       <BotMessage text={content.welcome} />
       {messages.map((message) =>
         message.role === "bot" ? (
-          <BotMessage key={message.id} text={message.text} breadcrumb={message.breadcrumb} />
+          <BotMessage key={message.id} text={message.text} breadcrumb={message.breadcrumb} onSegmentClick={onSend} />
         ) : (
           <UserMessage key={message.id} text={message.text} />
         ),

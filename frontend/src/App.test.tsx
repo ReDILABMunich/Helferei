@@ -446,3 +446,48 @@ describe("FE-5 acceptance criteria", () => {
     ]);
   });
 });
+
+describe("FE-15 acceptance criteria", () => {
+  it("normal path: clicking a segment sends its path as my question", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "What should I enter for Art der Tätigkeit?{Enter}");
+    answer(0, {
+      answer: "Type of Business Activity.",
+      session_id: "abc",
+      breadcrumb: "Section 1: Allgemeine Angaben → Art der Tätigkeit",
+    });
+    await screen.findByText("Type of Business Activity.");
+
+    await user.click(within(breadcrumbBars()[0]).getByRole("button", { name: "Allgemeine Angaben" }));
+
+    expect(screen.getByText("Section 1 → Allgemeine Angaben")).toBeInTheDocument();
+    await waitFor(() => expect(pending).toHaveLength(2));
+    expect(pending[1].body.message).toBe("Section 1 → Allgemeine Angaben");
+    expect(pending[1].body.session_id).toBe("abc");
+    answer(1, { answer: "General information.", session_id: "abc", breadcrumb: "Section 1: Allgemeine Angaben" });
+    await screen.findByText("General information.");
+    expect(segmentsIn(breadcrumbBars()[1])).toEqual(["Section 1", "Allgemeine Angaben"]);
+  });
+
+  it("something goes wrong: a click while an answer is loading sends nothing", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "What should I enter for Art der Tätigkeit?{Enter}");
+    answer(0, {
+      answer: "Type of Business Activity.",
+      session_id: "abc",
+      breadcrumb: "Section 1: Allgemeine Angaben → Art der Tätigkeit",
+    });
+    await screen.findByText("Type of Business Activity.");
+    await user.type(screen.getByRole("textbox"), "Second question{Enter}");
+    await waitFor(() => expect(pending).toHaveLength(2));
+
+    await user.click(within(breadcrumbBars()[0]).getByRole("button", { name: "Allgemeine Angaben" }));
+
+    expect(pending).toHaveLength(2);
+    expect(screen.queryByText("Section 1 → Allgemeine Angaben")).not.toBeInTheDocument();
+  });
+});
