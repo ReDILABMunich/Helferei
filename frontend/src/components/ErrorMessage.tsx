@@ -26,7 +26,7 @@ function ErrorMessage({ content, onRetry }: ErrorMessageProps) {
           <button
             type="button"
             onClick={onRetry}
-            className="flex items-center gap-3 px-4 py-2 bg-red-50 border border-red-100 shadow-x-small rounded-8 text-h5 text-black hover:bg-red-100 hover:border-red-200 active:bg-red-100 active:border-red-200"
+            className="flex items-center gap-3 px-4 py-2 bg-red-50 border border-red-200 shadow-x-small rounded-8 text-h5 text-black hover:bg-red-100 active:bg-red-100"
           >
             {content.error.retry}
             <RefreshIcon className="w-6" />

@@ -124,6 +124,11 @@
   body {
     @apply bg-neutral-50 font-sans text-body text-neutral-900 antialiased;
   }
+
+  /* Tailwind v4 removed the pointer cursor from buttons. */
+  button:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 @layer components {
