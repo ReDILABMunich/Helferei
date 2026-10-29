@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import logo from "../assets/logo.png";
 import { ArrowRightIcon } from "./icons";
@@ -23,6 +24,35 @@ function toSegments(breadcrumb: string): string[] {
   return [...head, ...rest];
 }
 
+type Place = "item" | "first-line" | "other";
+
+// The German field name in a line: before " · " or " — " in a list item,
+// in quotes on the first line.
+function fieldName(line: string, place: Place): string | null {
+  if (place === "item") {
+    const end = line.includes(" · ") ? line.indexOf(" · ") : line.indexOf(" — ");
+    return end > 0 ? line.slice(0, end) : null;
+  }
+  if (place === "first-line") {
+    return line.match(/^(?:(?:Section|Abschnitt) \d+ )?'([^']+)'/)?.[1] ?? null;
+  }
+  return null;
+}
+
+function withFieldName(children: ReactNode, place: Place): ReactNode {
+  if (typeof children !== "string") return children;
+  const name = fieldName(children, place);
+  if (!name) return children;
+  const start = children.indexOf(name);
+  return (
+    <>
+      {children.slice(0, start)}
+      <span className="text-blue-900">{name}</span>
+      {children.slice(start + name.length)}
+    </>
+  );
+}
+
 function BotMessage({ text, breadcrumb = null, onSegmentClick }: BotMessageProps) {
   const segments = breadcrumb ? toSegments(breadcrumb) : [];
 
@@ -32,7 +62,7 @@ function BotMessage({ text, breadcrumb = null, onSegmentClick }: BotMessageProps
         <img src={logo} alt="" className="w-6" />
       </div>
       <div className="flex-1 pb-3">
-        <div className="flex flex-col gap-3 bg-white border-b-3 border-neutral-200 shadow-small rounded-t-20 rounded-br-20 px-5 py-3 text-blue-900">
+        <div className="flex flex-col gap-3 bg-white border-b-3 border-neutral-200 shadow-small rounded-t-24 rounded-br-24 px-5 py-3 text-neutral-900">
           {/* Outside .bot-prose, so the markdown list styles do not apply. */}
           {segments.length > 0 && (
             <div className="pb-1 border-b-2 border-neutral-400">
@@ -61,7 +91,17 @@ function BotMessage({ text, breadcrumb = null, onSegmentClick }: BotMessageProps
             </div>
           )}
           <div className="bot-prose">
-            <ReactMarkdown>{bulletsToMarkdown(text)}</ReactMarkdown>
+            <ReactMarkdown
+              components={{
+                li: ({ children }) => <li>{withFieldName(children, "item")}</li>,
+                // Markdown counts lines from 1, so this is the first line of the answer.
+                p: ({ node, children }) => (
+                  <p>{withFieldName(children, node?.position?.start.line === 1 ? "first-line" : "other")}</p>
+                ),
+              }}
+            >
+              {bulletsToMarkdown(text)}
+            </ReactMarkdown>
           </div>
         </div>
       </div>
