@@ -221,6 +221,31 @@ describe("FE-6 acceptance criteria", () => {
   });
 });
 
+describe("FE-10 acceptance criteria", () => {
+  it("normal path: typing removes the empty error", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: en.send }));
+    expect(screen.getByText("Please type a question before sending")).toBeInTheDocument();
+
+    await user.type(screen.getByRole("textbox"), "W");
+
+    expect(screen.queryByText("Please type a question before sending")).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox")).not.toBeInvalid();
+  });
+
+  it("something goes wrong: sending an empty box shows the error and sends nothing", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: en.send }));
+
+    expect(screen.getByText("Please type a question before sending")).toBeInTheDocument();
+    expect(screen.getByRole("textbox")).toBeInvalid();
+    expect(pending).toHaveLength(0);
+  });
+});
+
 describe("FE-4 acceptance criteria", () => {
   it("normal path: confirming a new chat leaves only the welcome message and drops the session", async () => {
     const user = userEvent.setup();

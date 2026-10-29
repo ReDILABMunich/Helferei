@@ -25,6 +25,7 @@ Ich helfe Ihnen dabei, das Formular zu verstehen, erkläre Ihnen die Bedeutung d
     "ATLAS ist eine KI und kann Fehler machen. Bitte überprüfen Sie wichtige Angaben, bevor Sie Ihre steuerlichen Angaben übermitteln.",
   send: "Senden",
   tooLong: "Ihre Nachricht ist zu lang. Bitte halten Sie sie unter 800 Zeichen.",
+  empty: "Bitte geben Sie eine Frage ein, bevor Sie senden.",
   thinking: "Denkt nach",
   error: {
     title: "Etwas ist schiefgelaufen.",

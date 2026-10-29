@@ -109,4 +109,23 @@ describe("MessageInput", () => {
 
     expect(iconsIn(screen.getByText(en.tooLong))).toEqual(["caution"]);
   });
+
+  it("shows the empty error when Enter is pressed in an empty box", async () => {
+    const user = userEvent.setup();
+    render(<MessageInput content={en} onSend={vi.fn()} sending={false} />);
+
+    await user.type(screen.getByRole("textbox"), "{Enter}");
+
+    expect(screen.getByText("Please type a question before sending")).toBeInTheDocument();
+  });
+
+  it("shows the empty error for a box with only spaces", async () => {
+    const user = userEvent.setup();
+    render(<MessageInput content={en} onSend={vi.fn()} sending={false} />);
+
+    await user.type(screen.getByRole("textbox"), "   ");
+    await user.click(screen.getByRole("button", { name: en.send }));
+
+    expect(screen.getByText("Please type a question before sending")).toBeInTheDocument();
+  });
 });
