@@ -21,7 +21,7 @@ function HintStrip({ content }: HintStripProps) {
         {open ? <ArrowDownIcon className="w-3" /> : <ArrowUpIcon className="w-3" />}
       </button>
       {open && (
-        <p className="self-stretch px-1 py-2 border border-t-4 border-l-4 border-blue-100 rounded-8 rounded-tl-0 text-body-sm text-blue-900">
+        <p className="self-stretch px-1 py-2 border border-t-4 border-l-4 border-blue-100 rounded-8 rounded-tl-0 text-body-sm text-neutral-700">
           {content.hint}
         </p>
       )}
