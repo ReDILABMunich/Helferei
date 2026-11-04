@@ -1,7 +1,9 @@
+import os
+import secrets
 import uuid
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -16,6 +18,10 @@ async def lifespan(app: FastAPI):
     # indexes, so this must not happen per request. A single agent serves every
     # user — it keeps one Session per thread_id internally (agent.py:1162).
     app.state.agent = build_agent()
+    # The key check disables itself when unconfigured, so say which it is —
+    # otherwise a silently-open endpoint looks identical to a protected one.
+    print("API key check:",
+          "ENABLED" if os.environ.get("APP_API_KEY", "").strip() else "DISABLED")
     yield
 
 
@@ -92,6 +98,29 @@ def _strip_nav_tip(answer: str) -> str:
     return stripped or answer
 
 
+def require_api_key(x_api_key: str | None = Header(None)):
+    """Reject requests that do not carry our shared secret.
+
+    Attached per endpoint rather than as middleware, so `/` stays reachable for
+    Render's health check and any uptime pinger. Every new endpoint should take
+    this dependency; `/` is the only intentional exception.
+
+    Disabled while APP_API_KEY is unset, which lets the backend ship before the
+    frontend starts sending the header. `compare_digest` rather than `==`:
+    `==` short-circuits on the first wrong byte, so response timing would leak
+    the key one character at a time.
+
+    Read from os.environ here rather than at import time — load_dotenv() runs
+    when `engine` is imported, so a module-level constant would depend on the
+    order of statements in this file.
+    """
+    expected = os.environ.get("APP_API_KEY", "").strip()
+    if not expected:
+        return
+    if not x_api_key or not secrets.compare_digest(x_api_key, expected):
+        raise HTTPException(status_code=401, detail="invalid api key")
+
+
 @app.get("/")
 def root():
     return {"message": "Hello from Helferei Backend, test rendering a branch"}
@@ -102,7 +131,8 @@ def health():
     return {"status": "ok"}
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/chat", response_model=ChatResponse,
+          dependencies=[Depends(require_api_key)])
 def chat(request: ChatRequest):
     # Deliberately `def`, not `async def`: TaxFormAgent.chat() blocks while it
     # waits on OpenAI. Declared async, it would stall the event loop and every
