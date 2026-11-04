@@ -29,6 +29,8 @@ The key is not a secret: it is built into the JavaScript and anyone can read it 
 - Locally: `frontend/.env.local`, which git ignores.
 - In production: the Vercel project settings.
 
+`frontend/.env.example` is pushed and shows the name of the variable, with an empty value.
+
 Vite writes the value into the JavaScript at build time, so a new value needs a new build.
 
 ## Behaviour (state machine)

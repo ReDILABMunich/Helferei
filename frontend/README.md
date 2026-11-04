@@ -17,8 +17,11 @@ You need Node.js (version 22 works).
 ```bash
 cd frontend
 npm install
+cp .env.example .env.local
 npm run dev
 ```
+
+The backend rejects requests without an API key. Ask the team for the value and put it in `.env.local` as `VITE_API_KEY` before you start the app.
 
 The app opens at http://localhost:5173 and talks to the live backend on Render.
 
