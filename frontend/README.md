@@ -38,5 +38,5 @@ Every push to `main` is deployed to Vercel automatically. Every other branch get
 
 - [Architecture](docs/architecture.md): class diagram, package diagram and layer rules
 - [Decisions](decisions/): why things are the way they are
-- [Feature specs](docs/features/): one spec per ticket (FE-1 to FE-8)
+- [Feature specs](docs/features/): one spec per ticket
 - [CLAUDE.md](CLAUDE.md): how we work on this code
