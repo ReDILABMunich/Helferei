@@ -615,3 +615,54 @@ describe("FE-14 acceptance criteria", () => {
     expect(scrolls).toHaveLength(before);
   });
 });
+
+describe("FE-16 acceptance criteria", () => {
+  function sentKey(index: number) {
+    const init = vi.mocked(fetch).mock.calls[index][1];
+    return (init?.headers as Record<string, string>)["X-API-Key"];
+  }
+
+  beforeEach(() => {
+    vi.stubEnv("VITE_API_KEY", "test-key");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("normal path: the request carries the key and the answer is shown", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "First question{Enter}");
+    expect(sentKey(0)).toBe("test-key");
+
+    answer(0, { answer: "First answer", session_id: "abc", breadcrumb: "" });
+    expect(await screen.findByText("First answer")).toBeInTheDocument();
+  });
+
+  it("something goes wrong: when the backend rejects the key, the error and Try again are shown", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "First question{Enter}");
+    answer(0, { detail: "invalid api key" }, 401);
+
+    const alert = await screen.findByRole("alert");
+    expect(within(alert).getByRole("button", { name: en.error.retry })).toBeInTheDocument();
+  });
+
+  it("Try again also carries the key", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox"), "First question{Enter}");
+    answer(0, { detail: "AI request failed" }, 502);
+    const alert = await screen.findByRole("alert");
+
+    await user.click(within(alert).getByRole("button", { name: en.error.retry }));
+    await waitFor(() => expect(pending).toHaveLength(2));
+
+    expect(sentKey(1)).toBe("test-key");
+  });
+});
