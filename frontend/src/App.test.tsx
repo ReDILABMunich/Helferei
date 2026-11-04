@@ -618,8 +618,8 @@ describe("FE-14 acceptance criteria", () => {
 
 describe("FE-16 acceptance criteria", () => {
   function sentKey(index: number) {
-    const init = vi.mocked(fetch).mock.calls[index][1];
-    return (init?.headers as Record<string, string>)["X-API-Key"];
+    const init = vi.mocked(fetch).mock.calls[index][1] as RequestInit;
+    return (init.headers as Record<string, string>)["X-API-Key"];
   }
 
   beforeEach(() => {
