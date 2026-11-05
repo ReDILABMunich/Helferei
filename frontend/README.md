@@ -17,8 +17,11 @@ You need Node.js (version 22 works).
 ```bash
 cd frontend
 npm install
+cp .env.example .env.local
 npm run dev
 ```
+
+The backend rejects requests without an API key. Ask the team for the value and put it in `.env.local` as `VITE_API_KEY` before you start the app.
 
 The app opens at http://localhost:5173 and talks to the live backend on Render.
 
@@ -35,5 +38,5 @@ Every push to `main` is deployed to Vercel automatically. Every other branch get
 
 - [Architecture](docs/architecture.md): class diagram, package diagram and layer rules
 - [Decisions](decisions/): why things are the way they are
-- [Feature specs](docs/features/): one spec per ticket (FE-1 to FE-8)
+- [Feature specs](docs/features/): one spec per ticket
 - [CLAUDE.md](CLAUDE.md): how we work on this code
